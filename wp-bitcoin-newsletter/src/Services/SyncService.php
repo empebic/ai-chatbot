@@ -4,6 +4,7 @@ namespace WpBitcoinNewsletter\Services;
 
 use WpBitcoinNewsletter\Database\Installer;
 use WpBitcoinNewsletter\Util\ProviderFactory;
+use WpBitcoinNewsletter\Admin\Settings;
 
 defined('ABSPATH') || exit;
 
@@ -31,6 +32,18 @@ class SyncService
         // Sync to newsletter provider
         $provider = ProviderFactory::newsletter();
         $synced = false;
+        $settings = Settings::getSettings();
+        $emailMeta = get_post_meta((int)$subscriber['form_id'], '_wpbn_email', true);
+        $options = [
+            'double_opt_in' => is_array($emailMeta) && !empty($emailMeta['double_opt_in']),
+            'mailpoet_list_id' => isset($settings['mailpoet_list_id']) ? (int)$settings['mailpoet_list_id'] : 0,
+            'mailchimp_api_key' => isset($settings['mailchimp_api_key']) ? (string)$settings['mailchimp_api_key'] : '',
+            'mailchimp_audience_id' => isset($settings['mailchimp_audience_id']) ? (string)$settings['mailchimp_audience_id'] : '',
+            'sendinblue_api_key' => isset($settings['sendinblue_api_key']) ? (string)$settings['sendinblue_api_key'] : '',
+            'sendinblue_list_id' => isset($settings['sendinblue_list_id']) ? (int)$settings['sendinblue_list_id'] : 0,
+            'convertkit_api_secret' => isset($settings['convertkit_api_secret']) ? (string)$settings['convertkit_api_secret'] : '',
+            'convertkit_form_id' => isset($settings['convertkit_form_id']) ? (int)$settings['convertkit_form_id'] : 0,
+        ];
         try {
             $synced = $provider->upsert([
                 'email' => $subscriber['email'],
@@ -41,7 +54,7 @@ class SyncService
                 'custom1' => $subscriber['custom1'],
                 'custom2' => $subscriber['custom2'],
                 'form_id' => (int)$subscriber['form_id'],
-            ]);
+            ], $options);
         } catch (\Throwable $e) {
             $synced = false;
         }
