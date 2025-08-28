@@ -20,8 +20,13 @@ class Settings
             'default_amount' => 21,
             'default_currency' => 'SATS',
             'coinsnap_api_key' => '',
+            'coinsnap_store_id' => '',
+            'coinsnap_api_base' => 'https://app.coinsnap.org',
+            'coinsnap_webhook_secret' => '',
             'btcpay_host' => '',
             'btcpay_api_key' => '',
+            'btcpay_store_id' => '',
+            'btcpay_webhook_secret' => '',
             'newsletter_provider' => 'wpdb',
             'mailpoet_list_id' => '',
             'mailchimp_api_key' => '',
@@ -78,6 +83,18 @@ class Settings
             $s = self::getSettings();
             echo '<input type="text" class="regular-text" name="' . esc_attr(self::OPTION_KEY) . '[coinsnap_api_key]" value="' . esc_attr($s['coinsnap_api_key']) . '" />';
         }, 'wpbn-settings', 'wpbn_coinsnap');
+        add_settings_field('coinsnap_store_id', __('Coinsnap Store ID', 'wpbn'), function () {
+            $s = self::getSettings();
+            echo '<input type="text" class="regular-text" name="' . esc_attr(self::OPTION_KEY) . '[coinsnap_store_id]" value="' . esc_attr($s['coinsnap_store_id']) . '" />';
+        }, 'wpbn-settings', 'wpbn_coinsnap');
+        add_settings_field('coinsnap_api_base', __('Coinsnap API Base', 'wpbn'), function () {
+            $s = self::getSettings();
+            echo '<input type="url" class="regular-text" placeholder="https://app.coinsnap.org" name="' . esc_attr(self::OPTION_KEY) . '[coinsnap_api_base]" value="' . esc_attr($s['coinsnap_api_base']) . '" />';
+        }, 'wpbn-settings', 'wpbn_coinsnap');
+        add_settings_field('coinsnap_webhook_secret', __('Coinsnap Webhook Secret', 'wpbn'), function () {
+            $s = self::getSettings();
+            echo '<input type="text" class="regular-text" name="' . esc_attr(self::OPTION_KEY) . '[coinsnap_webhook_secret]" value="' . esc_attr($s['coinsnap_webhook_secret']) . '" />';
+        }, 'wpbn-settings', 'wpbn_coinsnap');
 
         add_settings_section('wpbn_btcpay', __('BTCPay Server', 'wpbn'), function () {}, 'wpbn-settings');
         add_settings_field('btcpay_host', __('BTCPay Host', 'wpbn'), function () {
@@ -87,6 +104,14 @@ class Settings
         add_settings_field('btcpay_api_key', __('BTCPay API Key', 'wpbn'), function () {
             $s = self::getSettings();
             echo '<input type="text" class="regular-text" name="' . esc_attr(self::OPTION_KEY) . '[btcpay_api_key]" value="' . esc_attr($s['btcpay_api_key']) . '" />';
+        }, 'wpbn-settings', 'wpbn_btcpay');
+        add_settings_field('btcpay_store_id', __('BTCPay Store ID', 'wpbn'), function () {
+            $s = self::getSettings();
+            echo '<input type="text" class="regular-text" name="' . esc_attr(self::OPTION_KEY) . '[btcpay_store_id]" value="' . esc_attr($s['btcpay_store_id']) . '" />';
+        }, 'wpbn-settings', 'wpbn_btcpay');
+        add_settings_field('btcpay_webhook_secret', __('BTCPay Webhook Secret', 'wpbn'), function () {
+            $s = self::getSettings();
+            echo '<input type="text" class="regular-text" name="' . esc_attr(self::OPTION_KEY) . '[btcpay_webhook_secret]" value="' . esc_attr($s['btcpay_webhook_secret']) . '" />';
         }, 'wpbn-settings', 'wpbn_btcpay');
 
         add_settings_section('wpbn_news', __('Newsletter Provider', 'wpbn'), function () {}, 'wpbn-settings');
@@ -145,8 +170,13 @@ class Settings
         $out['default_amount'] = isset($input['default_amount']) ? absint($input['default_amount']) : 21;
         $out['default_currency'] = isset($input['default_currency']) ? sanitize_text_field($input['default_currency']) : 'SATS';
         $out['coinsnap_api_key'] = isset($input['coinsnap_api_key']) ? sanitize_text_field($input['coinsnap_api_key']) : '';
+        $out['coinsnap_store_id'] = isset($input['coinsnap_store_id']) ? sanitize_text_field($input['coinsnap_store_id']) : '';
+        $out['coinsnap_api_base'] = isset($input['coinsnap_api_base']) ? esc_url_raw($input['coinsnap_api_base']) : 'https://app.coinsnap.org';
+        $out['coinsnap_webhook_secret'] = isset($input['coinsnap_webhook_secret']) ? sanitize_text_field($input['coinsnap_webhook_secret']) : '';
         $out['btcpay_host'] = isset($input['btcpay_host']) ? esc_url_raw($input['btcpay_host']) : '';
         $out['btcpay_api_key'] = isset($input['btcpay_api_key']) ? sanitize_text_field($input['btcpay_api_key']) : '';
+        $out['btcpay_store_id'] = isset($input['btcpay_store_id']) ? sanitize_text_field($input['btcpay_store_id']) : '';
+        $out['btcpay_webhook_secret'] = isset($input['btcpay_webhook_secret']) ? sanitize_text_field($input['btcpay_webhook_secret']) : '';
         $out['newsletter_provider'] = isset($input['newsletter_provider']) ? sanitize_text_field($input['newsletter_provider']) : 'wpdb';
         $out['mailpoet_list_id'] = isset($input['mailpoet_list_id']) ? sanitize_text_field($input['mailpoet_list_id']) : '';
         $out['mailchimp_api_key'] = isset($input['mailchimp_api_key']) ? sanitize_text_field($input['mailchimp_api_key']) : '';

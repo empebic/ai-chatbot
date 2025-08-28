@@ -3,6 +3,8 @@
 namespace WpBitcoinNewsletter\Rest;
 
 use WpBitcoinNewsletter\Services\SyncService;
+use WpBitcoinNewsletter\Providers\Payment\CoinsnapProvider;
+use WpBitcoinNewsletter\Providers\Payment\BTCPayProvider;
 
 defined('ABSPATH') || exit;
 
@@ -31,11 +33,13 @@ class Routes
 
     public static function coinsnapWebhook($request)
     {
-        $params = $request->get_params();
-        $invoiceId = isset($params['invoice_id']) ? (string)$params['invoice_id'] : '';
-        $paid = !empty($params['paid']);
-        if ($invoiceId && $paid) {
-            $res = SyncService::handlePaymentPaid($invoiceId, $params);
+        if (!CoinsnapProvider::verifySignature()) {
+            return new \WP_Error('invalid_signature', 'Invalid signature', ['status' => 401]);
+        }
+        $params = json_decode($request->get_body(), true) ?: [];
+        $parsed = (new CoinsnapProvider())->handleWebhook($params);
+        if (!empty($parsed['invoice_id']) && !empty($parsed['paid'])) {
+            $res = SyncService::handlePaymentPaid((string)$parsed['invoice_id'], $params);
             return rest_ensure_response(['ok' => $res['ok']]);
         }
         return new \WP_Error('invalid', 'Invalid webhook', ['status' => 400]);
@@ -43,11 +47,13 @@ class Routes
 
     public static function btcpayWebhook($request)
     {
-        $params = $request->get_params();
-        $invoiceId = isset($params['invoice_id']) ? (string)$params['invoice_id'] : '';
-        $paid = !empty($params['paid']);
-        if ($invoiceId && $paid) {
-            $res = SyncService::handlePaymentPaid($invoiceId, $params);
+        if (!BTCPayProvider::verifySignature()) {
+            return new \WP_Error('invalid_signature', 'Invalid signature', ['status' => 401]);
+        }
+        $params = json_decode($request->get_body(), true) ?: [];
+        $parsed = (new BTCPayProvider())->handleWebhook($params);
+        if (!empty($parsed['invoice_id']) && !empty($parsed['paid'])) {
+            $res = SyncService::handlePaymentPaid((string)$parsed['invoice_id'], $params);
             return rest_ensure_response(['ok' => $res['ok']]);
         }
         return new \WP_Error('invalid', 'Invalid webhook', ['status' => 400]);
