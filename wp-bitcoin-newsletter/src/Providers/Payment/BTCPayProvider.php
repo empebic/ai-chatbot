@@ -1,0 +1,73 @@
+<?php
+
+namespace WpBitcoinNewsletter\Providers\Payment;
+
+use WpBitcoinNewsletter\Admin\Settings;
+
+class BTCPayProvider implements PaymentProviderInterface
+{
+    public function createInvoice(int $formId, int $amount, string $currency, array $subscriberData): array
+    {
+        $s = Settings::getSettings();
+        $host = rtrim((string)$s['btcpay_host'], '/');
+        $apiKey = (string)$s['btcpay_api_key'];
+        $store = (string)$s['btcpay_store_id'];
+        if (!$host || !$apiKey || !$store) return [];
+        $url = $host . '/api/v1/stores/' . rawurlencode($store) . '/invoices';
+        $payload = [
+            'amount' => (string)$amount,
+            'currency' => $currency,
+            'metadata' => [
+                'form_id' => $formId,
+                'email' => (string)$subscriberData['email'],
+            ],
+        ];
+        $args = [
+            'method' => 'POST',
+            'headers' => [
+                'Authorization' => 'token ' . $apiKey,
+                'Content-Type' => 'application/json',
+            ],
+            'timeout' => 20,
+            'body' => wp_json_encode($payload),
+        ];
+        $res = wp_remote_request($url, $args);
+        if (is_wp_error($res)) return [];
+        $code = wp_remote_retrieve_response_code($res);
+        $body = json_decode(wp_remote_retrieve_body($res), true);
+        if ($code >= 200 && $code < 300 && is_array($body)) {
+            $invoiceId = isset($body['id']) ? (string)$body['id'] : '';
+            $paymentUrl = isset($body['checkoutLink']) ? (string)$body['checkoutLink'] : '';
+            return $invoiceId && $paymentUrl ? [
+                'invoice_id' => $invoiceId,
+                'payment_url' => $paymentUrl,
+            ] : [];
+        }
+        return [];
+    }
+
+    public function handleWebhook(array $request): array
+    {
+        $invoiceId = isset($request['invoiceId']) ? (string)$request['invoiceId'] : '';
+        $type = isset($request['type']) ? (string)$request['type'] : '';
+        $paid = in_array($type, ['InvoiceSettled', 'PaymentReceived', 'InvoicePaid'], true);
+        return [
+            'invoice_id' => $invoiceId,
+            'paid' => $paid,
+            'metadata' => $request,
+        ];
+    }
+
+    public static function verifySignature(): bool
+    {
+        $s = Settings::getSettings();
+        $secret = (string)$s['btcpay_webhook_secret'];
+        if (!$secret) return false;
+        $sig = isset($_SERVER['HTTP_BTCPAY_SIGNATURE']) ? (string)$_SERVER['HTTP_BTCPAY_SIGNATURE'] : '';
+        $payload = file_get_contents('php://input') ?: '';
+        if (!$sig || !$payload) return false;
+        $calc = 'sha256=' . hash_hmac('sha256', $payload, $secret);
+        return hash_equals($calc, $sig);
+    }
+}
+
