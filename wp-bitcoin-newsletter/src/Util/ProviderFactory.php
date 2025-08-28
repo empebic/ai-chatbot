@@ -30,10 +30,13 @@ class ProviderFactory
         }
     }
 
-    public static function newsletter(): NewsletterProviderInterface
+    public static function newsletter(int $formId = 0): NewsletterProviderInterface
     {
         $settings = Settings::getSettings();
-        switch ($settings['newsletter_provider']) {
+        $providerMeta = $formId ? get_post_meta($formId, '_wpbn_provider', true) : [];
+        $override = is_array($providerMeta) && !empty($providerMeta['provider_override']) ? $providerMeta['provider_override'] : '';
+        $key = $override ?: $settings['newsletter_provider'];
+        switch ($key) {
             case 'mailpoet':
                 return new MailPoetProvider();
             case 'mailchimp':

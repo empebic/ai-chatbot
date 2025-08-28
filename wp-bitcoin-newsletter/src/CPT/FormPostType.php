@@ -6,7 +6,7 @@ defined('ABSPATH') || exit;
 
 class FormPostType
 {
-    public const POST_TYPE = 'coinsnap_newsletter_form';
+    public const POST_TYPE = 'coinsnap_newsletter';
 
     public static function register(): void
     {
@@ -29,7 +29,7 @@ class FormPostType
             'labels' => $labels,
             'public' => false,
             'show_ui' => true,
-            'show_in_menu' => true,
+            'show_in_menu' => 'wpbn-subscribers',
             'menu_position' => 57,
             'menu_icon' => 'dashicons-feedback',
             'supports' => ['title'],
@@ -47,6 +47,8 @@ class FormPostType
         add_meta_box('wpbn_payment', __('Payment Settings', 'wpbn'), [__CLASS__, 'renderPaymentMetabox'], self::POST_TYPE, 'side');
         add_meta_box('wpbn_email', __('Email & Redirect', 'wpbn'), [__CLASS__, 'renderEmailMetabox'], self::POST_TYPE, 'normal');
         add_meta_box('wpbn_gdpr', __('GDPR & Compliance', 'wpbn'), [__CLASS__, 'renderGdprMetabox'], self::POST_TYPE, 'normal');
+        add_meta_box('wpbn_provider', __('Newsletter Provider (Override)', 'wpbn'), [__CLASS__, 'renderProviderMetabox'], self::POST_TYPE, 'side');
+        add_meta_box('wpbn_shortcode', __('Shortcode', 'wpbn'), [__CLASS__, 'renderShortcodeMetabox'], self::POST_TYPE, 'side');
     }
 
     public static function renderFieldsMetabox(\WP_Post $post): void
@@ -149,7 +151,7 @@ class FormPostType
         }
         echo '</select></label></p>';
 
-        echo '<p><label>' . esc_html__('Override Provider (global default otherwise)', 'wpbn') . ': <select name="wpbn_payment[provider_override]">';
+        echo '<p><label>' . esc_html__('Override Payment Provider (global default otherwise)', 'wpbn') . ': <select name="wpbn_payment[provider_override]">';
         foreach (['' => __('Use Global Default', 'wpbn'), 'coinsnap' => 'Coinsnap', 'btcpay' => 'BTCPay'] as $k => $label) {
             echo '<option value="' . esc_attr($k) . '" ' . selected($k, $values['provider_override'], false) . '>' . esc_html($label) . '</option>';
         }
@@ -196,6 +198,44 @@ class FormPostType
         echo '<p><label>' . esc_html__('Data Retention (days, 0 = keep indefinitely)', 'wpbn') . ': <input type="number" min="0" name="wpbn_gdpr[retention_days]" value="' . esc_attr($values['retention_days']) . '" /></label></p>';
     }
 
+    public static function renderProviderMetabox(\WP_Post $post): void
+    {
+        $defaults = [
+            'provider_override' => '',
+            'mailpoet_list_id' => '',
+            'mailchimp_audience_id' => '',
+            'sendinblue_list_id' => '',
+            'convertkit_form_id' => '',
+        ];
+        $values = get_post_meta($post->ID, '_wpbn_provider', true);
+        if (!is_array($values)) $values = [];
+        $values = array_merge($defaults, $values);
+
+        echo '<p><label>' . esc_html__('Override Newsletter Provider (global default otherwise)', 'wpbn') . ': <select name="wpbn_provider[provider_override]">';
+        foreach ([
+            '' => __('Use Global Default', 'wpbn'),
+            'wpdb' => __('WP Database (internal only)', 'wpbn'),
+            'mailpoet' => 'MailPoet',
+            'mailchimp' => 'Mailchimp',
+            'sendinblue' => 'Sendinblue/Brevo',
+            'convertkit' => 'ConvertKit',
+        ] as $k => $label) {
+            echo '<option value="' . esc_attr($k) . '" ' . selected($k, $values['provider_override'], false) . '>' . esc_html($label) . '</option>';
+        }
+        echo '</select></label></p>';
+
+        echo '<p><label>' . esc_html__('MailPoet List ID (override)', 'wpbn') . '<br /><input type="text" class="widefat" name="wpbn_provider[mailpoet_list_id]" value="' . esc_attr($values['mailpoet_list_id']) . '" /></label></p>';
+        echo '<p><label>' . esc_html__('Mailchimp Audience ID (override)', 'wpbn') . '<br /><input type="text" class="widefat" name="wpbn_provider[mailchimp_audience_id]" value="' . esc_attr($values['mailchimp_audience_id']) . '" /></label></p>';
+        echo '<p><label>' . esc_html__('Sendinblue List ID (override)', 'wpbn') . '<br /><input type="text" class="widefat" name="wpbn_provider[sendinblue_list_id]" value="' . esc_attr($values['sendinblue_list_id']) . '" /></label></p>';
+        echo '<p><label>' . esc_html__('ConvertKit Form ID (override)', 'wpbn') . '<br /><input type="text" class="widefat" name="wpbn_provider[convertkit_form_id]" value="' . esc_attr($values['convertkit_form_id']) . '" /></label></p>';
+    }
+
+    public static function renderShortcodeMetabox(\WP_Post $post): void
+    {
+        $shortcode = '[coinsnap_newsletter_form id="' . (int)$post->ID . '"]';
+        echo '<input type="text" class="widefat" readonly value="' . esc_attr($shortcode) . '" onclick="this.select();" />';
+    }
+
     public static function saveMeta(int $postId, \WP_Post $post): void
     {
         if (!isset($_POST['wpbn_form_nonce']) || !wp_verify_nonce(sanitize_text_field($_POST['wpbn_form_nonce']), 'wpbn_save_form_' . $postId)) {
@@ -212,6 +252,7 @@ class FormPostType
         $payment = isset($_POST['wpbn_payment']) && is_array($_POST['wpbn_payment']) ? array_map('sanitize_text_field', wp_unslash($_POST['wpbn_payment'])) : [];
         $email = isset($_POST['wpbn_email']) && is_array($_POST['wpbn_email']) ? wp_unslash($_POST['wpbn_email']) : [];
         $gdpr = isset($_POST['wpbn_gdpr']) && is_array($_POST['wpbn_gdpr']) ? wp_unslash($_POST['wpbn_gdpr']) : [];
+        $provider = isset($_POST['wpbn_provider']) && is_array($_POST['wpbn_provider']) ? wp_unslash($_POST['wpbn_provider']) : [];
 
         // Sanitize more complex fields
         $email['email_template'] = isset($email['email_template']) ? wp_kses_post($email['email_template']) : '';
@@ -223,10 +264,17 @@ class FormPostType
         $gdpr['privacy_policy_url'] = isset($gdpr['privacy_policy_url']) ? esc_url_raw($gdpr['privacy_policy_url']) : '';
         $gdpr['retention_days'] = isset($gdpr['retention_days']) ? absint($gdpr['retention_days']) : 0;
 
+        $provider['provider_override'] = isset($provider['provider_override']) ? sanitize_text_field($provider['provider_override']) : '';
+        $provider['mailpoet_list_id'] = isset($provider['mailpoet_list_id']) ? sanitize_text_field($provider['mailpoet_list_id']) : '';
+        $provider['mailchimp_audience_id'] = isset($provider['mailchimp_audience_id']) ? sanitize_text_field($provider['mailchimp_audience_id']) : '';
+        $provider['sendinblue_list_id'] = isset($provider['sendinblue_list_id']) ? sanitize_text_field($provider['sendinblue_list_id']) : '';
+        $provider['convertkit_form_id'] = isset($provider['convertkit_form_id']) ? sanitize_text_field($provider['convertkit_form_id']) : '';
+
         update_post_meta($postId, '_wpbn_fields', $fields);
         update_post_meta($postId, '_wpbn_payment', $payment);
         update_post_meta($postId, '_wpbn_email', $email);
         update_post_meta($postId, '_wpbn_gdpr', $gdpr);
+        update_post_meta($postId, '_wpbn_provider', $provider);
     }
 }
 

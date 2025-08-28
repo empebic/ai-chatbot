@@ -30,19 +30,21 @@ class SyncService
         ], ['%s', '%s'], ['%d']);
 
         // Sync to newsletter provider
-        $provider = ProviderFactory::newsletter();
+        $formId = (int)$subscriber['form_id'];
+        $provider = ProviderFactory::newsletter($formId);
         $synced = false;
         $settings = Settings::getSettings();
-        $emailMeta = get_post_meta((int)$subscriber['form_id'], '_wpbn_email', true);
+        $emailMeta = get_post_meta($formId, '_wpbn_email', true);
+        $providerMeta = get_post_meta($formId, '_wpbn_provider', true);
         $options = [
             'double_opt_in' => is_array($emailMeta) && !empty($emailMeta['double_opt_in']),
-            'mailpoet_list_id' => isset($settings['mailpoet_list_id']) ? (int)$settings['mailpoet_list_id'] : 0,
-            'mailchimp_api_key' => isset($settings['mailchimp_api_key']) ? (string)$settings['mailchimp_api_key'] : '',
-            'mailchimp_audience_id' => isset($settings['mailchimp_audience_id']) ? (string)$settings['mailchimp_audience_id'] : '',
-            'sendinblue_api_key' => isset($settings['sendinblue_api_key']) ? (string)$settings['sendinblue_api_key'] : '',
-            'sendinblue_list_id' => isset($settings['sendinblue_list_id']) ? (int)$settings['sendinblue_list_id'] : 0,
-            'convertkit_api_secret' => isset($settings['convertkit_api_secret']) ? (string)$settings['convertkit_api_secret'] : '',
-            'convertkit_form_id' => isset($settings['convertkit_form_id']) ? (int)$settings['convertkit_form_id'] : 0,
+            'mailpoet_list_id' => isset($providerMeta['mailpoet_list_id']) && $providerMeta['mailpoet_list_id'] !== '' ? (int)$providerMeta['mailpoet_list_id'] : (int)($settings['mailpoet_list_id'] ?? 0),
+            'mailchimp_api_key' => (string)($settings['mailchimp_api_key'] ?? ''),
+            'mailchimp_audience_id' => isset($providerMeta['mailchimp_audience_id']) && $providerMeta['mailchimp_audience_id'] !== '' ? (string)$providerMeta['mailchimp_audience_id'] : (string)($settings['mailchimp_audience_id'] ?? ''),
+            'sendinblue_api_key' => (string)($settings['sendinblue_api_key'] ?? ''),
+            'sendinblue_list_id' => isset($providerMeta['sendinblue_list_id']) && $providerMeta['sendinblue_list_id'] !== '' ? (int)$providerMeta['sendinblue_list_id'] : (int)($settings['sendinblue_list_id'] ?? 0),
+            'convertkit_api_secret' => (string)($settings['convertkit_api_secret'] ?? ''),
+            'convertkit_form_id' => isset($providerMeta['convertkit_form_id']) && $providerMeta['convertkit_form_id'] !== '' ? (int)$providerMeta['convertkit_form_id'] : (int)($settings['convertkit_form_id'] ?? 0),
         ];
         try {
             $synced = $provider->upsert([
@@ -53,7 +55,7 @@ class SyncService
                 'company' => $subscriber['company'],
                 'custom1' => $subscriber['custom1'],
                 'custom2' => $subscriber['custom2'],
-                'form_id' => (int)$subscriber['form_id'],
+                'form_id' => $formId,
             ], $options);
         } catch (\Throwable $e) {
             $synced = false;
@@ -63,9 +65,9 @@ class SyncService
             'provider_sync_status' => $synced ? 'synced' : 'failed',
         ], ['id' => (int)$subscriber['id']], ['%s'], ['%d']);
 
-        self::sendEmails((int)$subscriber['form_id'], $subscriber['email']);
+        self::sendEmails($formId, $subscriber['email']);
 
-        $welcome = get_post_meta((int)$subscriber['form_id'], '_wpbn_email', true);
+        $welcome = get_post_meta($formId, '_wpbn_email', true);
         $welcomeUrl = is_array($welcome) && !empty($welcome['welcome_url']) ? esc_url_raw($welcome['welcome_url']) : home_url('/');
 
         return ['ok' => true, 'redirect' => $welcomeUrl];
