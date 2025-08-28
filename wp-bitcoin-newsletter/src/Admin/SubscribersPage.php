@@ -44,8 +44,12 @@ class SubscribersPage
         echo ' <a class="button" href="' . esc_url(add_query_arg(['wpbn_export' => 1])) . '">' . esc_html__('Export CSV', 'wpbn') . '</a>';
         echo '</form>';
 
-        echo '<table class="widefat striped"><thead><tr>';
-        $cols = ['ID','Email','Name','Form ID','Payment Status','Provider Sync','Amount','Date'];
+        echo '<form id="wpbn-bulk" method="post" onsubmit="return false;" style="margin:10px 0;">';
+        echo '<button class="button" id="wpbn-bulk-resync">' . esc_html__('Resync Selected', 'wpbn') . '</button>';
+        echo '</form>';
+
+        echo '<table class="widefat striped" id="wpbn-table"><thead><tr>';
+        $cols = ['Select','ID','Email','Name','Form ID','Payment Status','Provider Sync','Amount','Date'];
         foreach ($cols as $c) echo '<th>' . esc_html($c) . '</th>';
         echo '</tr></thead><tbody>';
         if ($items) {
@@ -53,6 +57,7 @@ class SubscribersPage
                 $name = trim(($row['first_name'] ?? '') . ' ' . ($row['last_name'] ?? ''));
                 $amount = $row['payment_amount'] ? esc_html($row['payment_amount'] . ' ' . $row['currency']) : '';
                 echo '<tr>';
+                echo '<td><input type="checkbox" class="wpbn-row" value="' . (int)$row['id'] . '" /></td>';
                 echo '<td>' . esc_html((string)$row['id']) . '</td>';
                 echo '<td>' . esc_html((string)$row['email']) . '</td>';
                 echo '<td>' . esc_html($name) . '</td>';
@@ -64,9 +69,25 @@ class SubscribersPage
                 echo '</tr>';
             }
         } else {
-            echo '<tr><td colspan="8">' . esc_html__('No subscribers found.', 'wpbn') . '</td></tr>';
+            echo '<tr><td colspan="9">' . esc_html__('No subscribers found.', 'wpbn') . '</td></tr>';
         }
         echo '</tbody></table>';
+
+        echo '<script>(function(){
+          var btn = document.getElementById("wpbn-bulk-resync");
+          if (!btn) return;
+          btn.addEventListener("click", function(){
+            var ids = Array.prototype.map.call(document.querySelectorAll("#wpbn-table .wpbn-row:checked"), function(cb){ return cb.value; });
+            if (!ids.length) { alert("Select at least one row"); return; }
+            fetch((window.wpbnRestUrl || (window.WPBN && WPBN.restUrl) || '/wp-json/wpbn/v1/') + 'subscribers/bulk-resync', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'same-origin',
+              body: JSON.stringify({ ids: ids })
+            }).then(function(r){return r.json();}).then(function(){ location.reload();});
+          });
+        })();</script>';
+
         echo '</div>';
     }
 

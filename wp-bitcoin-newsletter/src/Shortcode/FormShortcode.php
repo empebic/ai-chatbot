@@ -133,6 +133,14 @@ class FormShortcode
             wp_send_json_error(['message' => __('Spam detected.', 'wpbn')], 400);
         }
 
+        // Simple IP rate limit: 1 request per 10 seconds per IP per form
+        $ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field($_SERVER['REMOTE_ADDR']) : '';
+        $key = 'wpbn_rl_' . md5($formId . '|' . $ip);
+        if (get_transient($key)) {
+            wp_send_json_error(['message' => __('Please wait a few seconds before trying again.', 'wpbn')], 429);
+        }
+        set_transient($key, 1, 10);
+
         $email = isset($_POST['email']) ? sanitize_email(wp_unslash($_POST['email'])) : '';
         if (!$email || !is_email($email)) {
             wp_send_json_error(['message' => __('Please provide a valid email address.', 'wpbn')], 422);
@@ -172,7 +180,7 @@ class FormShortcode
                 'custom1' => $data['custom1'],
                 'custom2' => $data['custom2'],
                 'gdpr_consent' => $data['gdpr_consent'],
-                'ip' => isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field($_SERVER['REMOTE_ADDR']) : '',
+                'ip' => $ip,
                 'user_agent' => isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_textarea_field($_SERVER['HTTP_USER_AGENT']) : '',
                 'payment_status' => 'unpaid',
                 'provider_sync_status' => 'pending',

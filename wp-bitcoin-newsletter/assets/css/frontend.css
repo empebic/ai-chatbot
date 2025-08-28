@@ -16,3 +16,11 @@
 .wpbn-form .required { color: #cc0000; }
 .wpbn-submit { background: #1d2327; color: #fff; padding: 10px 16px; border: none; cursor: pointer; }
 .wpbn-submit:hover { background: #2c3338; }
+
+/* Modal */
+.wpbn-modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 10000; }
+.wpbn-modal { background: #fff; padding: 20px; max-width: 420px; width: 92%; border-radius: 6px; box-shadow: 0 8px 30px rgba(0,0,0,0.2); }
+.wpbn-modal h3 { margin-top: 0; }
+.wpbn-modal .wpbn-qr { text-align: center; margin: 16px 0; }
+.wpbn-modal .wpbn-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.wpbn-hide { display: none !important; }

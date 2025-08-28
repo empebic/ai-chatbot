@@ -5,6 +5,7 @@ namespace WpBitcoinNewsletter\Rest;
 use WpBitcoinNewsletter\Services\SyncService;
 use WpBitcoinNewsletter\Providers\Payment\CoinsnapProvider;
 use WpBitcoinNewsletter\Providers\Payment\BTCPayProvider;
+use WpBitcoinNewsletter\Database\Installer;
 
 defined('ABSPATH') || exit;
 
@@ -24,10 +25,22 @@ class Routes
             'callback' => [__CLASS__, 'btcpayWebhook'],
         ]);
 
+        register_rest_route('wpbn/v1', '/status/(?P<invoice>[^/]+)', [
+            'methods' => 'GET',
+            'permission_callback' => '__return_true',
+            'callback' => [__CLASS__, 'status'],
+        ]);
+
         register_rest_route('wpbn/v1', '/subscribers/(?P<id>\\d+)/resync', [
             'methods' => 'POST',
             'permission_callback' => function(){ return current_user_can('manage_options'); },
             'callback' => [__CLASS__, 'resync'],
+        ]);
+
+        register_rest_route('wpbn/v1', '/subscribers/bulk-resync', [
+            'methods' => 'POST',
+            'permission_callback' => function(){ return current_user_can('manage_options'); },
+            'callback' => [__CLASS__, 'bulkResync'],
         ]);
     }
 
@@ -59,15 +72,38 @@ class Routes
         return new \WP_Error('invalid', 'Invalid webhook', ['status' => 400]);
     }
 
+    public static function status($request)
+    {
+        $invoice = sanitize_text_field((string)$request['invoice']);
+        global $wpdb;
+        $table = Installer::tableName($wpdb);
+        $row = $wpdb->get_row($wpdb->prepare("SELECT payment_status, form_id FROM {$table} WHERE payment_invoice_id=%s", $invoice), ARRAY_A);
+        if (!$row) return rest_ensure_response(['exists' => false]);
+        $welcome = get_post_meta((int)$row['form_id'], '_wpbn_email', true);
+        $welcomeUrl = is_array($welcome) && !empty($welcome['welcome_url']) ? esc_url_raw($welcome['welcome_url']) : home_url('/');
+        return rest_ensure_response([
+            'exists' => true,
+            'paid' => $row['payment_status'] === 'paid',
+            'redirect' => $row['payment_status'] === 'paid' ? $welcomeUrl : '',
+        ]);
+    }
+
     public static function resync($request)
     {
         $id = (int)$request['id'];
-        global $wpdb;
-        $table = \WpBitcoinNewsletter\Database\Installer::tableName($wpdb);
-        $invoiceId = $wpdb->get_var($wpdb->prepare("SELECT payment_invoice_id FROM {$table} WHERE id=%d", $id));
-        if (!$invoiceId) return new \WP_Error('not_found', 'Subscriber not found', ['status' => 404]);
-        $res = SyncService::handlePaymentPaid((string)$invoiceId);
-        return rest_ensure_response(['ok' => $res['ok']]);
+        $ok = SyncService::resync($id);
+        return rest_ensure_response(['ok' => (bool)$ok]);
+    }
+
+    public static function bulkResync($request)
+    {
+        $ids = (array)$request->get_param('ids');
+        $ids = array_map('absint', $ids);
+        $ok = true;
+        foreach ($ids as $id) {
+            $ok = SyncService::resync((int)$id) && $ok;
+        }
+        return rest_ensure_response(['ok' => $ok]);
     }
 }
 

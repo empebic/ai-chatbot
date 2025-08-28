@@ -19,6 +19,8 @@ class SyncService
             return ['ok' => false, 'message' => 'Invoice not found'];
         }
         if ($subscriber['payment_status'] === 'paid') {
+            // Already paid; still ensure provider sync
+            self::resync((int)$subscriber['id']);
             return ['ok' => true, 'message' => 'Already paid'];
         }
 
@@ -29,10 +31,23 @@ class SyncService
             'id' => (int)$subscriber['id'],
         ], ['%s', '%s'], ['%d']);
 
-        // Sync to newsletter provider
+        self::resync((int)$subscriber['id']);
+
+        $welcome = get_post_meta((int)$subscriber['form_id'], '_wpbn_email', true);
+        $welcomeUrl = is_array($welcome) && !empty($welcome['welcome_url']) ? esc_url_raw($welcome['welcome_url']) : home_url('/');
+
+        return ['ok' => true, 'redirect' => $welcomeUrl];
+    }
+
+    public static function resync(int $subscriberId): bool
+    {
+        global $wpdb;
+        $table = Installer::tableName($wpdb);
+        $subscriber = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$table} WHERE id = %d", $subscriberId), ARRAY_A);
+        if (!$subscriber) return false;
         $formId = (int)$subscriber['form_id'];
+
         $provider = ProviderFactory::newsletter($formId);
-        $synced = false;
         $settings = Settings::getSettings();
         $emailMeta = get_post_meta($formId, '_wpbn_email', true);
         $providerMeta = get_post_meta($formId, '_wpbn_provider', true);
@@ -46,6 +61,7 @@ class SyncService
             'convertkit_api_secret' => (string)($settings['convertkit_api_secret'] ?? ''),
             'convertkit_form_id' => isset($providerMeta['convertkit_form_id']) && $providerMeta['convertkit_form_id'] !== '' ? (int)$providerMeta['convertkit_form_id'] : (int)($settings['convertkit_form_id'] ?? 0),
         ];
+        $synced = false;
         try {
             $synced = $provider->upsert([
                 'email' => $subscriber['email'],
@@ -63,14 +79,9 @@ class SyncService
 
         $wpdb->update($table, [
             'provider_sync_status' => $synced ? 'synced' : 'failed',
-        ], ['id' => (int)$subscriber['id']], ['%s'], ['%d']);
-
-        self::sendEmails($formId, $subscriber['email']);
-
-        $welcome = get_post_meta($formId, '_wpbn_email', true);
-        $welcomeUrl = is_array($welcome) && !empty($welcome['welcome_url']) ? esc_url_raw($welcome['welcome_url']) : home_url('/');
-
-        return ['ok' => true, 'redirect' => $welcomeUrl];
+            'updated_at' => current_time('mysql'),
+        ], ['id' => $subscriberId], ['%s', '%s'], ['%d']);
+        return $synced;
     }
 
     private static function sendEmails(int $formId, string $email): void
