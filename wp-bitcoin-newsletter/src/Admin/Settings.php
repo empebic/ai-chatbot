@@ -36,6 +36,7 @@ class Settings
             'convertkit_api_secret' => '',
             'convertkit_form_id' => '',
         ];
+        $defaults = apply_filters('wpbn_default_settings', $defaults);
         $opts = get_option(self::OPTION_KEY, []);
         if (!is_array($opts)) $opts = [];
         return array_merge($defaults, $opts);

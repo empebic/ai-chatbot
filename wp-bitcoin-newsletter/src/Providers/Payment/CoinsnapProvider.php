@@ -31,6 +31,7 @@ class CoinsnapProvider implements PaymentProviderInterface
                 'defaultPaymentMethod' => 'LightningNetwork',
             ],
         ];
+        $payload = apply_filters('wpbn_coinsnap_invoice_payload', $payload, $formId, $subscriberData);
         $args = [
             'method' => 'POST',
             'headers' => [
@@ -40,8 +41,11 @@ class CoinsnapProvider implements PaymentProviderInterface
             'timeout' => 20,
             'body' => wp_json_encode($payload),
         ];
+        $args = apply_filters('wpbn_coinsnap_request_args', $args, $formId);
         foreach ($endpoints as $url) {
             $res = wp_remote_request($url, $args);
+            /** Action: on Coinsnap response (raw) */
+            do_action('wpbn_coinsnap_response', $res, $formId);
             if (is_wp_error($res)) continue;
             $code = wp_remote_retrieve_response_code($res);
             $body = json_decode(wp_remote_retrieve_body($res), true);
@@ -61,6 +65,7 @@ class CoinsnapProvider implements PaymentProviderInterface
 
     public function handleWebhook(array $request): array
     {
+        do_action('wpbn_coinsnap_webhook_received', $request);
         $invoiceId = isset($request['invoiceId']) ? (string)$request['invoiceId'] : '';
         $type = isset($request['type']) ? (string)$request['type'] : '';
         $paid = in_array($type, ['InvoiceSettled', 'PaymentReceived', 'InvoicePaid'], true);

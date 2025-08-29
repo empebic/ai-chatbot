@@ -31,6 +31,8 @@ class SyncService
             'id' => (int)$subscriber['id'],
         ], ['%s', '%s'], ['%d']);
 
+        do_action('wpbn_payment_marked_paid', $invoiceId, $subscriber);
+
         self::resync((int)$subscriber['id']);
 
         $welcome = get_post_meta((int)$subscriber['form_id'], '_wpbn_email', true);
@@ -63,6 +65,7 @@ class SyncService
         ];
         $synced = false;
         try {
+            do_action('wpbn_before_provider_sync', $subscriberId, $subscriber, $options);
             $synced = $provider->upsert([
                 'email' => $subscriber['email'],
                 'first_name' => $subscriber['first_name'],
@@ -81,6 +84,12 @@ class SyncService
             'provider_sync_status' => $synced ? 'synced' : 'failed',
             'updated_at' => current_time('mysql'),
         ], ['id' => $subscriberId], ['%s', '%s'], ['%d']);
+
+        do_action('wpbn_after_provider_sync', $subscriberId, (bool)$synced);
+
+        if ($synced) {
+            self::sendEmails($formId, $subscriber['email']);
+        }
         return $synced;
     }
 
@@ -91,12 +100,17 @@ class SyncService
         $subject = __('Welcome to our newsletter', 'wpbn');
 
         $headers = ['Content-Type: text/html; charset=UTF-8'];
+        $template = apply_filters('wpbn_welcome_email_template', $template, $formId, $email);
+        $subject = apply_filters('wpbn_welcome_email_subject', $subject, $formId, $email);
+
         \wp_mail($email, $subject, $template, $headers);
+        do_action('wpbn_welcome_email_sent', $email, $formId);
 
         $adminEmail = get_option('admin_email');
         $adminSubject = sprintf(__('New paid subscription: %s', 'wpbn'), $email);
         $adminBody = sprintf(__('A new subscriber has completed payment on form #%d: %s', 'wpbn'), $formId, $email);
         \wp_mail($adminEmail, $adminSubject, nl2br(esc_html($adminBody)), $headers);
+        do_action('wpbn_admin_notification_sent', $email, $formId);
     }
 }
 

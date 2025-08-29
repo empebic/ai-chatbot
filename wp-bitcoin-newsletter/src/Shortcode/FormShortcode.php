@@ -67,7 +67,13 @@ class FormShortcode
 
         echo '<p><button type="submit" class="wpbn-submit">' . esc_html__('Continue to Payment', 'wpbn') . '</button></p>';
         echo '</form>';
-        return (string)ob_get_clean();
+        $html = (string)ob_get_clean();
+        /**
+         * Filter the rendered form HTML.
+         * @param string $html
+         * @param int $formId
+         */
+        return apply_filters('wpbn_form_html', $html, $postId);
     }
 
     private static function buildOrderedFields(array $fields): array
@@ -161,6 +167,12 @@ class FormShortcode
             'custom2' => isset($_POST['custom2']) ? sanitize_text_field(wp_unslash($_POST['custom2'])) : '',
             'gdpr_consent' => !empty($_POST['gdpr_consent']) ? 1 : 0,
         ];
+        /**
+         * Filter form submission data before insert.
+         * @param array $data
+         * @param int $formId
+         */
+        $data = apply_filters('wpbn_form_submission_data', $data, $formId);
 
         if (!$data['gdpr_consent']) {
             wp_send_json_error(['message' => __('GDPR consent is required.', 'wpbn')], 422);
@@ -168,6 +180,8 @@ class FormShortcode
 
         global $wpdb;
         $table = Installer::tableName($wpdb);
+        /** Action: before subscriber insert */
+        do_action('wpbn_before_subscriber_insert', $data, $formId);
         $inserted = $wpdb->insert(
             $table,
             [
@@ -195,12 +209,16 @@ class FormShortcode
         }
 
         $subscriberId = (int)$wpdb->insert_id;
+        do_action('wpbn_subscriber_created', $subscriberId, $formId, $data);
 
         // Determine amount/currency and create invoice via selected provider
         $payment = get_post_meta($formId, '_wpbn_payment', true);
         if (!is_array($payment)) $payment = [];
         $amount = isset($payment['amount']) ? absint($payment['amount']) : 21;
         $currency = isset($payment['currency']) ? sanitize_text_field($payment['currency']) : 'SATS';
+        $params = apply_filters('wpbn_payment_parameters', ['amount' => $amount, 'currency' => $currency], $formId, $data);
+        $amount = isset($params['amount']) ? (int)$params['amount'] : $amount;
+        $currency = isset($params['currency']) ? (string)$params['currency'] : $currency;
 
         $provider = ProviderFactory::paymentForForm($formId);
         $invoice = $provider->createInvoice($formId, $amount, $currency, $data);

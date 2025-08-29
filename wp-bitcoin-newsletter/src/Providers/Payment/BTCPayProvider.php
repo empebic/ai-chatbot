@@ -31,7 +31,9 @@ class BTCPayProvider implements PaymentProviderInterface
             'timeout' => 20,
             'body' => wp_json_encode($payload),
         ];
+        $args = apply_filters('wpbn_btcpay_request_args', $args, $formId);
         $res = wp_remote_request($url, $args);
+        do_action('wpbn_btcpay_response', $res, $formId);
         if (is_wp_error($res)) return [];
         $code = wp_remote_retrieve_response_code($res);
         $body = json_decode(wp_remote_retrieve_body($res), true);
@@ -48,6 +50,7 @@ class BTCPayProvider implements PaymentProviderInterface
 
     public function handleWebhook(array $request): array
     {
+        do_action('wpbn_btcpay_webhook_received', $request);
         $invoiceId = isset($request['invoiceId']) ? (string)$request['invoiceId'] : '';
         $type = isset($request['type']) ? (string)$request['type'] : '';
         $paid = in_array($type, ['InvoiceSettled', 'PaymentReceived', 'InvoicePaid'], true);
