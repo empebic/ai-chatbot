@@ -1,4 +1,10 @@
 <?php
+declare(strict_types=1);
+/**
+ * Mailchimp provider.
+ *
+ * @package wp-bitcoin-newsletter
+ */
 
 namespace WpBitcoinNewsletter\Providers\Newsletter;
 

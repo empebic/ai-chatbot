@@ -1,4 +1,10 @@
 <?php
+declare(strict_types=1);
+/**
+ * MailPoet provider.
+ *
+ * @package wp-bitcoin-newsletter
+ */
 
 namespace WpBitcoinNewsletter\Providers\Newsletter;
 

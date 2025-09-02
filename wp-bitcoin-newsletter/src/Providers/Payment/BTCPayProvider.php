@@ -1,4 +1,10 @@
 <?php
+declare(strict_types=1);
+/**
+ * BTCPay provider.
+ *
+ * @package wp-bitcoin-newsletter
+ */
 
 namespace WpBitcoinNewsletter\Providers\Payment;
 

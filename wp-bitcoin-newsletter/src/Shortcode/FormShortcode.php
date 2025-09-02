@@ -1,4 +1,10 @@
 <?php
+declare(strict_types=1);
+/**
+ * Shortcode handling.
+ *
+ * @package wp-bitcoin-newsletter
+ */
 
 namespace WpBitcoinNewsletter\Shortcode;
 

@@ -1,4 +1,10 @@
 <?php
+declare(strict_types=1);
+/**
+ * Newsletter provider interface.
+ *
+ * @package wp-bitcoin-newsletter
+ */
 
 namespace WpBitcoinNewsletter\Providers\Newsletter;
 

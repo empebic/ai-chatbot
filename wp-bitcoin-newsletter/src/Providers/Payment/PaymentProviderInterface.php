@@ -1,4 +1,10 @@
 <?php
+declare(strict_types=1);
+/**
+ * Payment provider interface.
+ *
+ * @package wp-bitcoin-newsletter
+ */
 
 namespace WpBitcoinNewsletter\Providers\Payment;
 

@@ -31,5 +31,9 @@
     </rule>
 
     <rule ref="WordPress.WP.I18n"/>
+
+    <!-- Allow PSR-4 class filenames to avoid conflicts with our autoloader -->
+    <exclude name="WordPress.Files.FileName"/>
+    <exclude name="Squiz.Classes.ClassFileName"/>
 </ruleset>
 

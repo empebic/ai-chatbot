@@ -1,4 +1,10 @@
 <?php
+declare(strict_types=1);
+/**
+ * DB installer.
+ *
+ * @package wp-bitcoin-newsletter
+ */
 
 namespace WpBitcoinNewsletter\Database;
 
@@ -13,13 +19,23 @@ class Installer {
     /**
      * Get subscribers table name with prefix.
      *
-     * @param \wpdb|null $wpdbParam Optional wpdb instance.
+     * @param \wpdb|null $wpdb_param Optional wpdb instance.
      * @return string Table name.
      */
-    public static function tableName( $wpdbParam = null ): string {
+    public static function table_name( $wpdb_param = null ): string {
         global $wpdb;
-        $db = $wpdbParam ?: $wpdb;
+        $db = $wpdb_param ? $wpdb_param : $wpdb;
         return $db->prefix . \WpBitcoinNewsletter\Constants::SUBSCRIBERS_TABLE_SUFFIX;
+    }
+
+    /**
+     * Back-compat alias for camelCase method.
+     *
+     * @deprecated 0.2.0 Use table_name() instead.
+     * @phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
+     */
+    public static function tableName( $wpdbParam = null ): string { // phpcs:ignore Squiz.NamingConventions.ValidFunctionName.NotCamelCaps
+        return self::table_name( $wpdbParam );
     }
 
     /**
@@ -28,7 +44,7 @@ class Installer {
     public static function activate(): void {
         global $wpdb;
         $table          = self::tableName( $wpdb );
-        $charsetCollate = $wpdb->get_charset_collate();
+        $charset_collate = $wpdb->get_charset_collate();
 
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
@@ -58,7 +74,7 @@ class Installer {
             KEY email (email),
             KEY payment_status (payment_status),
             KEY provider_sync_status (provider_sync_status)
-        ) $charsetCollate;";
+        ) $charset_collate;";
 
         \dbDelta( $sql );
     }

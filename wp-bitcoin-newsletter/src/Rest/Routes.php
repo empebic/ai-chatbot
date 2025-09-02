@@ -1,4 +1,10 @@
 <?php
+declare(strict_types=1);
+/**
+ * REST routes.
+ *
+ * @package wp-bitcoin-newsletter
+ */
 
 namespace WpBitcoinNewsletter\Rest;
 
