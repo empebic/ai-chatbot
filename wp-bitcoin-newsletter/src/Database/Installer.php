@@ -19,7 +19,7 @@ class Installer {
     public static function tableName( $wpdbParam = null ): string {
         global $wpdb;
         $db = $wpdbParam ?: $wpdb;
-        return $db->prefix . 'wpbn_subscribers';
+        return $db->prefix . \WpBitcoinNewsletter\Constants::SUBSCRIBERS_TABLE_SUFFIX;
     }
 
     /**

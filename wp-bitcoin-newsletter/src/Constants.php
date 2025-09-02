@@ -8,6 +8,11 @@ namespace WpBitcoinNewsletter;
 class Constants {
     /** REST namespace for the plugin. */
     public const REST_NAMESPACE = 'wpbn/v1';
+    public const REST_ROUTE_PAYMENT_COINSNAP = '/payment/coinsnap';
+    public const REST_ROUTE_PAYMENT_BTCPAY = '/payment/btcpay';
+    public const REST_ROUTE_STATUS = '/status/(?P<invoice>[^/]+)';
+    public const REST_ROUTE_RESYNC = '/subscribers/(?P<id>\\d+)/resync';
+    public const REST_ROUTE_BULK_RESYNC = '/subscribers/bulk-resync';
 
     /** CoinSnap endpoints (relative to API base). */
     public const COINSNAP_DEFAULT_API_BASE = 'https://api.coinsnap.io';
@@ -31,5 +36,8 @@ class Constants {
     public const SENDINBLUE_BASE = 'https://api.brevo.com/v3';
     public const SENDINBLUE_CONTACTS = '/contacts';
     public const SENDINBLUE_CONTACT = '/contacts/%s';
+
+    /** DB table suffixes. */
+    public const SUBSCRIBERS_TABLE_SUFFIX = 'wpbn_subscribers';
 }
 

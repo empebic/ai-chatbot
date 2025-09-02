@@ -7,6 +7,7 @@ use WpBitcoinNewsletter\Shortcode\FormShortcode;
 use WpBitcoinNewsletter\Admin\Settings as AdminSettings;
 use WpBitcoinNewsletter\Admin\SubscribersPage;
 use WpBitcoinNewsletter\Rest\Routes as RestRoutes;
+use WpBitcoinNewsletter\Constants;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -92,7 +93,7 @@ class Plugin {
 
         wp_localize_script( 'wpbn-frontend', 'WPBN', [
             'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-            'restUrl' => esc_url_raw( get_rest_url( null, 'wpbn/v1/' ) ),
+            'restUrl' => esc_url_raw( get_rest_url( null, Constants::REST_NAMESPACE . '/' ) ),
             'nonce'   => wp_create_nonce( 'wp_rest' ),
         ] );
 

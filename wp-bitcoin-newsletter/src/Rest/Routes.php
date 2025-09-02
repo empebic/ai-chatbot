@@ -3,6 +3,7 @@
 namespace WpBitcoinNewsletter\Rest;
 
 use WpBitcoinNewsletter\Services\SyncService;
+use WpBitcoinNewsletter\Constants;
 use WpBitcoinNewsletter\Providers\Payment\CoinsnapProvider;
 use WpBitcoinNewsletter\Providers\Payment\BTCPayProvider;
 use WpBitcoinNewsletter\Database\Installer;
@@ -18,8 +19,8 @@ class Routes {
     /** Register routes under wpbn/v1. */
     public static function register(): void {
         register_rest_route(
-            'wpbn/v1',
-            '/payment/coinsnap',
+            Constants::REST_NAMESPACE,
+            Constants::REST_ROUTE_PAYMENT_COINSNAP,
             [
                 'methods'             => 'POST',
                 'permission_callback' => '__return_true',
@@ -28,8 +29,8 @@ class Routes {
         );
 
         register_rest_route(
-            'wpbn/v1',
-            '/payment/btcpay',
+            Constants::REST_NAMESPACE,
+            Constants::REST_ROUTE_PAYMENT_BTCPAY,
             [
                 'methods'             => 'POST',
                 'permission_callback' => '__return_true',
@@ -38,8 +39,8 @@ class Routes {
         );
 
         register_rest_route(
-            'wpbn/v1',
-            '/status/(?P<invoice>[^/]+)',
+            Constants::REST_NAMESPACE,
+            Constants::REST_ROUTE_STATUS,
             [
                 'methods'             => 'GET',
                 'permission_callback' => '__return_true',
@@ -48,8 +49,8 @@ class Routes {
         );
 
         register_rest_route(
-            'wpbn/v1',
-            '/subscribers/(?P<id>\\d+)/resync',
+            Constants::REST_NAMESPACE,
+            Constants::REST_ROUTE_RESYNC,
             [
                 'methods'             => 'POST',
                 'permission_callback' => function () { return current_user_can( 'manage_options' ); },
@@ -58,8 +59,8 @@ class Routes {
         );
 
         register_rest_route(
-            'wpbn/v1',
-            '/subscribers/bulk-resync',
+            Constants::REST_NAMESPACE,
+            Constants::REST_ROUTE_BULK_RESYNC,
             [
                 'methods'             => 'POST',
                 'permission_callback' => function () { return current_user_can( 'manage_options' ); },

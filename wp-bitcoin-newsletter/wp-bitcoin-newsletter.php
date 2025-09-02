@@ -19,7 +19,9 @@ define( 'WPBN_PLUGIN_FILE', __FILE__ );
 define( 'WPBN_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WPBN_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
-// Simple PSR-4 autoloader for this plugin namespace.
+/**
+ * Register a simple PSR-4 autoloader for this plugin namespace.
+ */
 spl_autoload_register(
     function ( $class ) {
         $prefix = 'WpBitcoinNewsletter\\';
@@ -34,7 +36,9 @@ spl_autoload_register(
     }
 );
 
-// Activation: create database tables.
+/**
+ * Activation: create or update required database tables.
+ */
 register_activation_hook(
     __FILE__,
     function () {
@@ -45,7 +49,9 @@ register_activation_hook(
     }
 );
 
-// Bootstrap plugin after all plugins loaded.
+/**
+ * Bootstrap plugin after all plugins are loaded.
+ */
 add_action(
     'plugins_loaded',
     function () {
