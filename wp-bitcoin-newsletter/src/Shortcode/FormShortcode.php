@@ -249,13 +249,11 @@ class FormShortcode {
             [ '%d' ]
         );
 
-        wp_send_json_success(
-            [
-                'invoice_id'    => $invoiceId,
-                'payment_url'   => add_query_arg( [ 'wpbn_invoice' => $invoiceId ], $paymentUrl ),
-                'subscriber_id' => $subscriberId,
-            ]
-        );
+        wp_send_json_success([
+            'invoice_id' => $invoiceId,
+            'payment_url' => $paymentUrl,
+            'subscriber_id' => $subscriberId,
+        ]);
     }
 }
 

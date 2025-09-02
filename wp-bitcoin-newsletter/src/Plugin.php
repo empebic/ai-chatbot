@@ -64,17 +64,7 @@ class Plugin {
         RestRoutes::register();
     }
 
-    // Simple test hook to simulate payment success when visiting ?wpbn_invoice=xyz.
-    public function simulate_payment(): void {
-        if ( ! is_admin() && isset( $_GET['wpbn_invoice'] ) ) {
-            $invoiceId = sanitize_text_field( wp_unslash( $_GET['wpbn_invoice'] ) );
-            $res       = \WpBitcoinNewsletter\Services\SyncService::handlePaymentPaid( $invoiceId );
-            if ( ! headers_sent() && ! empty( $res['redirect'] ) ) {
-                wp_safe_redirect( $res['redirect'] );
-                exit;
-            }
-        }
-    }
+    
 
     public function enqueue_frontend(): void {
         wp_register_style( 'wpbn-frontend', WPBN_PLUGIN_URL . 'assets/css/frontend.css', [], WPBN_VERSION );

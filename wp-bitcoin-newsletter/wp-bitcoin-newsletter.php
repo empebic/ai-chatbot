@@ -53,7 +53,6 @@ add_action(
             require_once WPBN_PLUGIN_DIR . 'src/Plugin.php';
         }
         \WpBitcoinNewsletter\Plugin::instance()->boot();
-        add_action( 'template_redirect', [ \WpBitcoinNewsletter\Plugin::instance(), 'simulate_payment' ] );
     }
 );
 
