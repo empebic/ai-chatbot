@@ -13,7 +13,8 @@ class ConvertKitProvider implements NewsletterProviderInterface {
         if ( ! $apiSecret || ! $formId ) {
             return false;
         }
-        $url     = 'https://api.convertkit.com/v3/forms/' . $formId . '/subscribe';
+        $url     = \WpBitcoinNewsletter\Constants::CONVERTKIT_SUBSCRIBE_ENDPOINT;
+        $url     = sprintf( $url, $formId );
         $payload = [
             'api_secret' => $apiSecret,
             'email'      => (string) $subscriber['email'],

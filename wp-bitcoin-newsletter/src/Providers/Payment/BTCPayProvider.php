@@ -3,6 +3,7 @@
 namespace WpBitcoinNewsletter\Providers\Payment;
 
 use WpBitcoinNewsletter\Admin\Settings;
+use WpBitcoinNewsletter\Constants;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -21,7 +22,7 @@ class BTCPayProvider implements PaymentProviderInterface {
         if ( ! $host || ! $apiKey || ! $store ) {
             return [];
         }
-        $url     = $host . '/api/v1/stores/' . rawurlencode( $store ) . '/invoices';
+        $url     = $host . sprintf( Constants::BTCPAY_INVOICES_ENDPOINT, rawurlencode( $store ) );
         $payload = [
             'amount'   => (string) $amount,
             'currency' => $currency,

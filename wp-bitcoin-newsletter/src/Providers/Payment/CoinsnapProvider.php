@@ -3,6 +3,7 @@
 namespace WpBitcoinNewsletter\Providers\Payment;
 
 use WpBitcoinNewsletter\Admin\Settings;
+use WpBitcoinNewsletter\Constants;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -17,13 +18,13 @@ class CoinsnapProvider implements PaymentProviderInterface {
         $settings = Settings::getSettings();
         $apiKey   = $settings['coinsnap_api_key'];
         $storeId  = $settings['coinsnap_store_id'];
-        $apiBase  = rtrim( $settings['coinsnap_api_base'], '/' );
+        $apiBase  = rtrim( $settings['coinsnap_api_base'] ?: Constants::COINSNAP_DEFAULT_API_BASE, '/' );
         if ( ! $apiKey || ! $storeId ) {
             return [];
         }
         $endpoints = [
-            $apiBase . '/api/v1/stores/' . rawurlencode( $storeId ) . '/invoices',
-            $apiBase . '/api/stores/' . rawurlencode( $storeId ) . '/invoices',
+            $apiBase . sprintf( Constants::COINSNAP_INVOICES_ENDPOINT_V1, rawurlencode( $storeId ) ),
+            $apiBase . sprintf( Constants::COINSNAP_INVOICES_ENDPOINT_ALT, rawurlencode( $storeId ) ),
         ];
         $payload   = [
             'amount'    => (string) $amount,

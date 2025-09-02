@@ -23,7 +23,8 @@ class MailchimpProvider implements NewsletterProviderInterface {
         }
         $email  = strtolower( trim( (string) $subscriber['email'] ) );
         $hash   = md5( $email );
-        $url    = 'https://' . $dc . '.api.mailchimp.com/3.0/lists/' . rawurlencode( $audienceId ) . '/members/' . $hash;
+        $base   = sprintf( \WpBitcoinNewsletter\Constants::MAILCHIMP_BASE, $dc );
+        $url    = $base . sprintf( \WpBitcoinNewsletter\Constants::MAILCHIMP_MEMBER_ENDPOINT, rawurlencode( $audienceId ), $hash );
         $status = ! empty( $options['double_opt_in'] ) ? 'pending' : 'subscribed';
         $body   = [
             'email_address' => $email,
@@ -64,7 +65,8 @@ class MailchimpProvider implements NewsletterProviderInterface {
         }
         $emailLower = strtolower( trim( $email ) );
         $hash       = md5( $emailLower );
-        $url        = 'https://' . $dc . '.api.mailchimp.com/3.0/lists/' . rawurlencode( $audienceId ) . '/members/' . $hash;
+        $base       = sprintf( \WpBitcoinNewsletter\Constants::MAILCHIMP_BASE, $dc );
+        $url        = $base . sprintf( \WpBitcoinNewsletter\Constants::MAILCHIMP_MEMBER_ENDPOINT, rawurlencode( $audienceId ), $hash );
         $body       = [ 'status' => 'unsubscribed' ];
         $args       = [
             'method'  => 'PATCH',

@@ -17,7 +17,7 @@ class SendinblueProvider implements NewsletterProviderInterface {
         if ( ! $apiKey || ! $listId ) {
             return false;
         }
-        $url     = 'https://api.brevo.com/v3/contacts';
+        $url     = \WpBitcoinNewsletter\Constants::SENDINBLUE_BASE . \WpBitcoinNewsletter\Constants::SENDINBLUE_CONTACTS;
         $payload = [
             'email'      => (string) $subscriber['email'],
             'attributes' => [
@@ -53,7 +53,7 @@ class SendinblueProvider implements NewsletterProviderInterface {
         if ( ! $apiKey ) {
             return false;
         }
-        $url     = 'https://api.brevo.com/v3/contacts/' . rawurlencode( strtolower( trim( $email ) ) );
+        $url     = \WpBitcoinNewsletter\Constants::SENDINBLUE_BASE . sprintf( \WpBitcoinNewsletter\Constants::SENDINBLUE_CONTACT, rawurlencode( strtolower( trim( $email ) ) ) );
         $payload = [ 'unlinkListIds' => [] ];
         $args    = [
             'method'  => 'PUT',
