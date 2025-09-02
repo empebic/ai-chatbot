@@ -59,3 +59,40 @@ pnpm dev
 ```
 
 Your app template should now be running on [localhost:3000](http://localhost:3000/).
+
+### WordPress Coding Standards (WPCS)
+
+The `wp-bitcoin-newsletter` plugin in this repo is aligned with WPCS and includes a `phpcs.xml.dist`.
+
+- Local run (with PHP and Composer):
+
+```bash
+cd wp-bitcoin-newsletter
+composer install
+./vendor/bin/phpcs -p
+./vendor/bin/phpcbf -p
+```
+
+- Without Composer, use a global PHPCS installation:
+
+```bash
+phpcs --standard=WordPress --report=full wp-bitcoin-newsletter
+```
+
+- Suggested CI (GitHub Actions):
+
+```yaml
+name: PHPCS
+on: [push, pull_request]
+jobs:
+  phpcs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer
+      - run: cd wp-bitcoin-newsletter && composer install --no-interaction --no-progress
+      - run: cd wp-bitcoin-newsletter && ./vendor/bin/phpcs -p
+```

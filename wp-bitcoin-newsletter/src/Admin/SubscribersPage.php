@@ -1,75 +1,96 @@
 <?php
+/**
+ * Subscribers admin page.
+ *
+ * @package wp-bitcoin-newsletter
+ */
+declare(strict_types=1);
 
 namespace WpBitcoinNewsletter\Admin;
 
 use WpBitcoinNewsletter\Database\Installer;
 
-defined('ABSPATH') || exit;
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
 
-class SubscribersPage
-{
-    public static function renderPage(): void
-    {
-        if (isset($_GET['wpbn_export']) && current_user_can('manage_options')) {
-            self::exportCsv();
+/**
+ * Admin page for viewing and exporting subscribers.
+ */
+class SubscribersPage {
+    /** Render the subscribers admin page. */
+    public static function render_page(): void {
+        if ( isset( $_GET['wpbn_export'] ) && current_user_can( 'manage_options' ) ) {
+            self::export_csv();
             return;
         }
 
-        $status = isset($_GET['status']) ? sanitize_text_field(wp_unslash($_GET['status'])) : '';
-        $formId = isset($_GET['form_id']) ? absint($_GET['form_id']) : 0;
+        $status = isset( $_GET['status'] ) ? sanitize_text_field( wp_unslash( $_GET['status'] ) ) : '';
+        $form_id = isset( $_GET['form_id'] ) ? absint( $_GET['form_id'] ) : 0;
 
         global $wpdb;
-        $table = Installer::tableName($wpdb);
-        $where = [];
+        $table  = Installer::tableName( $wpdb );
+        $where  = [];
         $params = [];
-        if ($status) { $where[] = 'payment_status = %s'; $params[] = $status; }
-        if ($formId) { $where[] = 'form_id = %d'; $params[] = $formId; }
+        if ( $status ) {
+            $where[]  = 'payment_status = %s';
+            $params[] = $status;
+        }
+        if ( $form_id ) {
+            $where[]  = 'form_id = %d';
+            $params[] = $form_id;
+        }
         $sql = "SELECT id, email, first_name, last_name, payment_status, provider_sync_status, created_at, payment_amount, currency, form_id FROM {$table}";
-        if ($where) { $sql .= ' WHERE ' . implode(' AND ', $where); }
-        $sql .= ' ORDER BY id DESC LIMIT 200';
-        $items = $params ? $wpdb->get_results($wpdb->prepare($sql, $params), ARRAY_A) : $wpdb->get_results($sql, ARRAY_A);
+        if ( $where ) {
+            $sql .= ' WHERE ' . implode( ' AND ', $where );
+        }
+        $sql  .= ' ORDER BY id DESC LIMIT 200';
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+        $items = $params ? $wpdb->get_results( $wpdb->prepare( $sql, $params ), ARRAY_A ) : $wpdb->get_results( $sql, ARRAY_A );
 
         echo '<div class="wrap wpbn-admin">';
-        echo '<h1>' . esc_html__('Newsletter Subscribers', 'wpbn') . '</h1>';
+        echo '<h1>' . esc_html__( 'Newsletter Subscribers', 'wpbn' ) . '</h1>';
 
         echo '<form method="get" style="margin:10px 0;">';
         echo '<input type="hidden" name="page" value="wpbn-subscribers" />';
-        echo '<label>' . esc_html__('Status', 'wpbn') . ': <select name="status">';
-        foreach (['' => __('All', 'wpbn'), 'paid' => 'paid', 'unpaid' => 'unpaid'] as $k => $label) {
-            echo '<option value="' . esc_attr($k) . '" ' . selected($k, $status, false) . '>' . esc_html($label) . '</option>';
+        echo '<label>' . esc_html__( 'Status', 'wpbn' ) . ': <select name="status">';
+        foreach ( [ '' => __( 'All', 'wpbn' ), 'paid' => 'paid', 'unpaid' => 'unpaid' ] as $k => $label ) {
+            echo '<option value="' . esc_attr( $k ) . '" ' . selected( $k, $status, false ) . '>' . esc_html( $label ) . '</option>';
         }
         echo '</select></label> ';
-        echo '<label>' . esc_html__('Form ID', 'wpbn') . ': <input type="number" name="form_id" value="' . ($formId ? (int)$formId : '') . '" /></label> ';
-        submit_button(__('Filter', 'wpbn'), 'secondary', '', false);
-        echo ' <a class="button" href="' . esc_url(add_query_arg(['wpbn_export' => 1])) . '">' . esc_html__('Export CSV', 'wpbn') . '</a>';
+        echo '<label>' . esc_html__( 'Form ID', 'wpbn' ) . ': <input type="number" name="form_id" value="' . ( $form_id ? (int) $form_id : '' ) . '" /></label> ';
+        submit_button( __( 'Filter', 'wpbn' ), 'secondary', '', false );
+        echo ' <a class="button" href="' . esc_url( add_query_arg( [ 'wpbn_export' => 1 ] ) ) . '">' . esc_html__( 'Export CSV', 'wpbn' ) . '</a>';
         echo '</form>';
 
         echo '<form id="wpbn-bulk" method="post" onsubmit="return false;" style="margin:10px 0;">';
-        echo '<button class="button" id="wpbn-bulk-resync">' . esc_html__('Resync Selected', 'wpbn') . '</button>';
+        echo '<button class="button" id="wpbn-bulk-resync">' . esc_html__( 'Resync Selected', 'wpbn' ) . '</button>';
         echo '</form>';
 
         echo '<table class="widefat striped" id="wpbn-table"><thead><tr>';
-        $cols = ['Select','ID','Email','Name','Form ID','Payment Status','Provider Sync','Amount','Date'];
-        foreach ($cols as $c) echo '<th>' . esc_html($c) . '</th>';
+        $cols = [ 'Select', 'ID', 'Email', 'Name', 'Form ID', 'Payment Status', 'Provider Sync', 'Amount', 'Date' ];
+        foreach ( $cols as $c ) {
+            echo '<th>' . esc_html( $c ) . '</th>';
+        }
         echo '</tr></thead><tbody>';
-        if ($items) {
-            foreach ($items as $row) {
-                $name = trim(($row['first_name'] ?? '') . ' ' . ($row['last_name'] ?? ''));
-                $amount = $row['payment_amount'] ? esc_html($row['payment_amount'] . ' ' . $row['currency']) : '';
+        if ( $items ) {
+            foreach ( $items as $row ) {
+                $name   = trim( ( $row['first_name'] ?? '' ) . ' ' . ( $row['last_name'] ?? '' ) );
+                $amount = $row['payment_amount'] ? esc_html( $row['payment_amount'] . ' ' . $row['currency'] ) : '';
                 echo '<tr>';
-                echo '<td><input type="checkbox" class="wpbn-row" value="' . (int)$row['id'] . '" /></td>';
-                echo '<td>' . esc_html((string)$row['id']) . '</td>';
-                echo '<td>' . esc_html((string)$row['email']) . '</td>';
-                echo '<td>' . esc_html($name) . '</td>';
-                echo '<td>' . esc_html((string)$row['form_id']) . '</td>';
-                echo '<td>' . esc_html((string)$row['payment_status']) . '</td>';
-                echo '<td>' . esc_html((string)$row['provider_sync_status']) . '</td>';
+                echo '<td><input type="checkbox" class="wpbn-row" value="' . (int) $row['id'] . '" /></td>';
+                echo '<td>' . esc_html( (string) $row['id'] ) . '</td>';
+                echo '<td>' . esc_html( (string) $row['email'] ) . '</td>';
+                echo '<td>' . esc_html( $name ) . '</td>';
+                echo '<td>' . esc_html( (string) $row['form_id'] ) . '</td>';
+                echo '<td>' . esc_html( (string) $row['payment_status'] ) . '</td>';
+                echo '<td>' . esc_html( (string) $row['provider_sync_status'] ) . '</td>';
                 echo '<td>' . $amount . '</td>';
-                echo '<td>' . esc_html((string)$row['created_at']) . '</td>';
+                echo '<td>' . esc_html( (string) $row['created_at'] ) . '</td>';
                 echo '</tr>';
             }
         } else {
-            echo '<tr><td colspan="9">' . esc_html__('No subscribers found.', 'wpbn') . '</td></tr>';
+            echo '<tr><td colspan="9">' . esc_html__( 'No subscribers found.', 'wpbn' ) . '</td></tr>';
         }
         echo '</tbody></table>';
 
@@ -91,25 +112,27 @@ class SubscribersPage
         echo '</div>';
     }
 
-    private static function exportCsv(): void
-    {
-        if (!current_user_can('manage_options')) {
-            wp_die(__('Unauthorized', 'wpbn'));
+    /** Export subscribers as CSV and exit. */
+    private static function export_csv(): void {
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_die( esc_html__( 'Unauthorized', 'wpbn' ) );
         }
         global $wpdb;
-        $table = Installer::tableName($wpdb);
-        $rows = $wpdb->get_results("SELECT * FROM {$table} ORDER BY id DESC", ARRAY_A);
+        $table = Installer::tableName( $wpdb );
+        // Table name is dynamic but trusted; only values are user input.
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        $rows  = $wpdb->get_results( "SELECT * FROM {$table} ORDER BY id DESC", ARRAY_A );
         nocache_headers();
-        header('Content-Type: text/csv; charset=utf-8');
-        header('Content-Disposition: attachment; filename=wpbn-subscribers.csv');
-        $out = fopen('php://output', 'w');
-        if (!empty($rows)) {
-            fputcsv($out, array_keys($rows[0]));
-            foreach ($rows as $r) {
-                fputcsv($out, $r);
+        header( 'Content-Type: text/csv; charset=utf-8' );
+        header( 'Content-Disposition: attachment; filename=wpbn-subscribers.csv' );
+        $out = fopen( 'php://output', 'w' );
+        if ( ! empty( $rows ) ) {
+            fputcsv( $out, array_keys( $rows[0] ) );
+            foreach ( $rows as $r ) {
+                fputcsv( $out, $r );
             }
         }
-        fclose($out);
+        fclose( $out );
         exit;
     }
 }

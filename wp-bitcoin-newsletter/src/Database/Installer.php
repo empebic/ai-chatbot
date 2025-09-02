@@ -1,23 +1,50 @@
 <?php
+/**
+ * DB installer.
+ *
+ * @package wp-bitcoin-newsletter
+ */
+declare(strict_types=1);
 
 namespace WpBitcoinNewsletter\Database;
 
-defined('ABSPATH') || exit;
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
 
-class Installer
-{
-    public static function tableName($wpdbParam = null): string
-    {
+/**
+ * Database table installer and utilities.
+ */
+class Installer {
+    /**
+     * Get subscribers table name with prefix.
+     *
+     * @param \wpdb|null $wpdb_param Optional wpdb instance.
+     * @return string Table name.
+     */
+    public static function table_name( $wpdb_param = null ): string {
         global $wpdb;
-        $db = $wpdbParam ?: $wpdb;
-        return $db->prefix . 'wpbn_subscribers';
+        $db = $wpdb_param ? $wpdb_param : $wpdb;
+        return $db->prefix . \WpBitcoinNewsletter\Constants::SUBSCRIBERS_TABLE_SUFFIX;
     }
 
-    public static function activate(): void
-    {
+    /**
+     * Back-compat alias for camelCase method.
+     *
+     * @deprecated 0.2.0 Use table_name() instead.
+     * @phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
+     */
+    public static function tableName( $wpdbParam = null ): string { // phpcs:ignore Squiz.NamingConventions.ValidFunctionName.NotCamelCaps
+        return self::table_name( $wpdbParam );
+    }
+
+    /**
+     * Activation callback to create/update DB schema.
+     */
+    public static function activate(): void {
         global $wpdb;
-        $table = self::tableName($wpdb);
-        $charsetCollate = $wpdb->get_charset_collate();
+        $table          = self::tableName( $wpdb );
+        $charset_collate = $wpdb->get_charset_collate();
 
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
@@ -47,9 +74,9 @@ class Installer
             KEY email (email),
             KEY payment_status (payment_status),
             KEY provider_sync_status (provider_sync_status)
-        ) $charsetCollate;";
+        ) $charset_collate;";
 
-        \dbDelta($sql);
+        \dbDelta( $sql );
     }
 }
 

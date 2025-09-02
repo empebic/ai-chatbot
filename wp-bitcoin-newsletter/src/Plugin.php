@@ -1,4 +1,10 @@
 <?php
+/**
+ * Plugin core bootstrap.
+ *
+ * @package wp-bitcoin-newsletter
+ */
+declare(strict_types=1);
 
 namespace WpBitcoinNewsletter;
 
@@ -7,97 +13,109 @@ use WpBitcoinNewsletter\Shortcode\FormShortcode;
 use WpBitcoinNewsletter\Admin\Settings as AdminSettings;
 use WpBitcoinNewsletter\Admin\SubscribersPage;
 use WpBitcoinNewsletter\Rest\Routes as RestRoutes;
+use WpBitcoinNewsletter\Constants;
 
-defined('ABSPATH') || exit;
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
 
-class Plugin
-{
-    /** @var Plugin|null */
+/**
+ * Main plugin bootstrap.
+ */
+class Plugin {
+    /**
+     * Singleton instance.
+     *
+     * @var Plugin|null
+     */
     private static $instance;
 
-    public static function instance(): Plugin
-    {
-        if (!self::$instance) {
+    /**
+     * Get singleton instance.
+     *
+     * @return Plugin
+     */
+    public static function instance(): Plugin {
+        if ( ! self::$instance ) {
             self::$instance = new self();
         }
         return self::$instance;
     }
 
-    public function boot(): void
-    {
-        add_action('init', [FormPostType::class, 'register']);
-        add_action('init', [FormShortcode::class, 'register']);
+    /**
+     * Register hooks on load.
+     */
+    public function boot(): void {
+        add_action( 'init', [ FormPostType::class, 'register' ] );
+        add_action( 'init', [ FormShortcode::class, 'register' ] );
 
-        add_action('admin_menu', [$this, 'registerAdminMenu']);
+        add_action( 'admin_menu', [ $this, 'register_admin_menu' ] );
         AdminSettings::register();
-        add_action('rest_api_init', [$this, 'registerRestRoutes']);
+        add_action( 'rest_api_init', [ $this, 'register_rest_routes' ] );
 
-        add_action('wp_enqueue_scripts', [$this, 'enqueueFrontend']);
-        add_action('admin_enqueue_scripts', [$this, 'enqueueAdmin']);
+        add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_frontend' ] );
+        add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin' ] );
     }
 
-    public function registerAdminMenu(): void
-    {
+    /**
+     * Register admin menus and submenus.
+     */
+    public function register_admin_menu(): void {
         add_menu_page(
-            __('Newsletter Subscribers', 'wpbn'),
-            __('Subscribers', 'wpbn'),
+            __( 'Newsletter Subscribers', 'wpbn' ),
+            __( 'Subscribers', 'wpbn' ),
             'manage_options',
             'wpbn-subscribers',
-            [SubscribersPage::class, 'renderPage'],
+            [ SubscribersPage::class, 'render_page' ],
             'dashicons-email',
             56
         );
 
         add_submenu_page(
             'wpbn-subscribers',
-            __('Settings', 'wpbn'),
-            __('Settings', 'wpbn'),
+            __( 'Settings', 'wpbn' ),
+            __( 'Settings', 'wpbn' ),
             'manage_options',
             'wpbn-settings',
-            [AdminSettings::class, 'renderPage']
+            [ AdminSettings::class, 'render_page' ]
         );
     }
 
-    public function registerRestRoutes(): void
-    {
+    /**
+     * Register REST API routes.
+     */
+    public function register_rest_routes(): void {
         RestRoutes::register();
     }
 
-    // Simple test hook to simulate payment success when visiting ?wpbn_invoice=xyz
-    public function simulatePayment(): void
-    {
-        if (!is_admin() && isset($_GET['wpbn_invoice'])) {
-            $invoiceId = sanitize_text_field(wp_unslash($_GET['wpbn_invoice']));
-            $res = \WpBitcoinNewsletter\Services\SyncService::handlePaymentPaid($invoiceId);
-            if (!headers_sent() && !empty($res['redirect'])) {
-                wp_safe_redirect($res['redirect']);
-                exit;
-            }
-        }
+    
+
+    /**
+     * Enqueue frontend assets.
+     */
+    public function enqueue_frontend(): void {
+        wp_register_style( 'wpbn-frontend', WPBN_PLUGIN_URL . 'assets/css/frontend.css', [], WPBN_VERSION );
+        wp_register_script( 'wpbn-frontend', WPBN_PLUGIN_URL . 'assets/js/frontend.js', [ 'jquery' ], WPBN_VERSION, true );
+
+        wp_localize_script( 'wpbn-frontend', 'WPBN', [
+            'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+            'restUrl' => esc_url_raw( get_rest_url( null, Constants::REST_NAMESPACE . '/' ) ),
+            'nonce'   => wp_create_nonce( 'wp_rest' ),
+        ] );
+
+        wp_enqueue_style( 'wpbn-frontend' );
+        wp_enqueue_script( 'wpbn-frontend' );
     }
 
-    public function enqueueFrontend(): void
-    {
-        wp_register_style('wpbn-frontend', WPBN_PLUGIN_URL . 'assets/css/frontend.css', [], WPBN_VERSION);
-        wp_register_script('wpbn-frontend', WPBN_PLUGIN_URL . 'assets/js/frontend.js', ['jquery'], WPBN_VERSION, true);
+    /**
+     * Enqueue admin assets.
+     */
+    public function enqueue_admin(): void {
+        wp_register_style( 'wpbn-admin', WPBN_PLUGIN_URL . 'assets/css/admin.css', [], WPBN_VERSION );
+        wp_register_script( 'wpbn-admin', WPBN_PLUGIN_URL . 'assets/js/admin.js', [ 'jquery' ], WPBN_VERSION, true );
 
-        wp_localize_script('wpbn-frontend', 'WPBN', [
-            'ajaxUrl' => admin_url('admin-ajax.php'),
-            'restUrl' => esc_url_raw(get_rest_url(null, 'wpbn/v1/')),
-            'nonce'   => wp_create_nonce('wp_rest')
-        ]);
-
-        wp_enqueue_style('wpbn-frontend');
-        wp_enqueue_script('wpbn-frontend');
-    }
-
-    public function enqueueAdmin(): void
-    {
-        wp_register_style('wpbn-admin', WPBN_PLUGIN_URL . 'assets/css/admin.css', [], WPBN_VERSION);
-        wp_register_script('wpbn-admin', WPBN_PLUGIN_URL . 'assets/js/admin.js', ['jquery'], WPBN_VERSION, true);
-
-        wp_enqueue_style('wpbn-admin');
-        wp_enqueue_script('wpbn-admin');
+        wp_enqueue_style( 'wpbn-admin' );
+        wp_enqueue_script( 'wpbn-admin' );
     }
 }
 
