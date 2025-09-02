@@ -20,7 +20,7 @@ class Settings {
             'default_currency'      => 'SATS',
             'coinsnap_api_key'      => '',
             'coinsnap_store_id'     => '',
-            'coinsnap_api_base'     => 'https://app.coinsnap.org',
+            'coinsnap_api_base'     => 'https://api.coinsnap.io',
             'coinsnap_webhook_secret' => '',
             'btcpay_host'           => '',
             'btcpay_api_key'        => '',
@@ -132,7 +132,7 @@ class Settings {
             __( 'Coinsnap API Base', 'wpbn' ),
             function () {
                 $s = self::get_settings();
-                echo '<input type="url" class="regular-text" placeholder="https://app.coinsnap.org" name="' . esc_attr( self::OPTION_KEY ) . '[coinsnap_api_base]" value="' . esc_attr( $s['coinsnap_api_base'] ) . '" />';
+                echo '<input type="url" class="regular-text" placeholder="https://api.coinsnap.io" name="' . esc_attr( self::OPTION_KEY ) . '[coinsnap_api_base]" value="' . esc_attr( $s['coinsnap_api_base'] ) . '" />';
             },
             'wpbn-settings',
             'wpbn_coinsnap'

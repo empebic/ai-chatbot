@@ -37,8 +37,11 @@ class CoinsnapProvider implements PaymentProviderInterface {
         $args    = [
             'method'  => 'POST',
             'headers' => [
-                'Authorization' => 'token ' . $apiKey,
-                'Content-Type'  => 'application/json',
+                // New API header per latest docs; keep Authorization for backward compatibility.
+                'X-Api-Key'    => $apiKey,
+                'Authorization'=> 'token ' . $apiKey,
+                'Content-Type' => 'application/json',
+                'accept'       => 'application/json',
             ],
             'timeout' => 20,
             'body'    => wp_json_encode( $payload ),
