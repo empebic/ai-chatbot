@@ -1,10 +1,10 @@
 <?php
-declare(strict_types=1);
 /**
  * Sendinblue/Brevo provider.
  *
  * @package wp-bitcoin-newsletter
  */
+declare(strict_types=1);
 
 namespace WpBitcoinNewsletter\Providers\Newsletter;
 
