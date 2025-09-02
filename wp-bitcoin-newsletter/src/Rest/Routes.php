@@ -4,6 +4,7 @@
  *
  * @package wp-bitcoin-newsletter
  */
+
 declare(strict_types=1);
 
 namespace WpBitcoinNewsletter\Rest;
@@ -85,10 +86,13 @@ class Routes {
         if ( ! CoinsnapProvider::verify_signature() ) {
             return new \WP_Error( 'invalid_signature', 'Invalid signature', [ 'status' => 401 ] );
         }
-        $params = json_decode( $request->get_body(), true ) ?: [];
+        $params = json_decode( $request->get_body(), true );
+        if ( ! is_array( $params ) ) {
+            $params = [];
+        }
         $parsed = ( new CoinsnapProvider() )->handle_webhook( $params );
         if ( ! empty( $parsed['invoice_id'] ) && ! empty( $parsed['paid'] ) ) {
-            $res = SyncService::handlePaymentPaid( (string) $parsed['invoice_id'], $params );
+            $res = SyncService::handle_payment_paid( (string) $parsed['invoice_id'], $params );
             return rest_ensure_response( [ 'ok' => $res['ok'] ] );
         }
         return new \WP_Error( 'invalid', 'Invalid webhook', [ 'status' => 400 ] );
@@ -104,10 +108,13 @@ class Routes {
         if ( ! BTCPayProvider::verify_signature() ) {
             return new \WP_Error( 'invalid_signature', 'Invalid signature', [ 'status' => 401 ] );
         }
-        $params = json_decode( $request->get_body(), true ) ?: [];
+        $params = json_decode( $request->get_body(), true );
+        if ( ! is_array( $params ) ) {
+            $params = [];
+        }
         $parsed = ( new BTCPayProvider() )->handle_webhook( $params );
         if ( ! empty( $parsed['invoice_id'] ) && ! empty( $parsed['paid'] ) ) {
-            $res = SyncService::handlePaymentPaid( (string) $parsed['invoice_id'], $params );
+            $res = SyncService::handle_payment_paid( (string) $parsed['invoice_id'], $params );
             return rest_ensure_response( [ 'ok' => $res['ok'] ] );
         }
         return new \WP_Error( 'invalid', 'Invalid webhook', [ 'status' => 400 ] );
@@ -123,17 +130,19 @@ class Routes {
         $invoice = sanitize_text_field( (string) $request['invoice'] );
         global $wpdb;
         $table = Installer::tableName( $wpdb );
+        // Table name is trusted, only values are placeholders.
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
         $row   = $wpdb->get_row( $wpdb->prepare( "SELECT payment_status, form_id FROM {$table} WHERE payment_invoice_id=%s", $invoice ), ARRAY_A );
         if ( ! $row ) {
             return rest_ensure_response( [ 'exists' => false ] );
         }
-        $welcome    = get_post_meta( (int) $row['form_id'], '_wpbn_email', true );
-        $welcomeUrl = is_array( $welcome ) && ! empty( $welcome['welcome_url'] ) ? esc_url_raw( $welcome['welcome_url'] ) : home_url( '/' );
+        $welcome     = get_post_meta( (int) $row['form_id'], '_wpbn_email', true );
+        $welcome_url = is_array( $welcome ) && ! empty( $welcome['welcome_url'] ) ? esc_url_raw( $welcome['welcome_url'] ) : home_url( '/' );
         return rest_ensure_response(
             [
                 'exists'   => true,
-                'paid'     => $row['payment_status'] === 'paid',
-                'redirect' => $row['payment_status'] === 'paid' ? $welcomeUrl : '',
+                'paid'     => 'paid' === $row['payment_status'],
+                'redirect' => 'paid' === $row['payment_status'] ? $welcome_url : '',
             ]
         );
     }

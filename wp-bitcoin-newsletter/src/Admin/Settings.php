@@ -1,10 +1,11 @@
 <?php
-declare(strict_types=1);
 /**
  * Admin settings.
  *
  * @package wp-bitcoin-newsletter
  */
+
+declare(strict_types=1);
 
 namespace WpBitcoinNewsletter\Admin;
 
