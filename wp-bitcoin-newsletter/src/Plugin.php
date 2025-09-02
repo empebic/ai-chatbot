@@ -12,6 +12,9 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+/**
+ * Main plugin bootstrap.
+ */
 class Plugin {
     /**
      * Singleton instance.
@@ -20,6 +23,11 @@ class Plugin {
      */
     private static $instance;
 
+    /**
+     * Get singleton instance.
+     *
+     * @return Plugin
+     */
     public static function instance(): Plugin {
         if ( ! self::$instance ) {
             self::$instance = new self();
@@ -27,6 +35,9 @@ class Plugin {
         return self::$instance;
     }
 
+    /**
+     * Register hooks on load.
+     */
     public function boot(): void {
         add_action( 'init', [ FormPostType::class, 'register' ] );
         add_action( 'init', [ FormShortcode::class, 'register' ] );
@@ -39,6 +50,9 @@ class Plugin {
         add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin' ] );
     }
 
+    /**
+     * Register admin menus and submenus.
+     */
     public function register_admin_menu(): void {
         add_menu_page(
             __( 'Newsletter Subscribers', 'wpbn' ),
@@ -60,12 +74,18 @@ class Plugin {
         );
     }
 
+    /**
+     * Register REST API routes.
+     */
     public function register_rest_routes(): void {
         RestRoutes::register();
     }
 
     
 
+    /**
+     * Enqueue frontend assets.
+     */
     public function enqueue_frontend(): void {
         wp_register_style( 'wpbn-frontend', WPBN_PLUGIN_URL . 'assets/css/frontend.css', [], WPBN_VERSION );
         wp_register_script( 'wpbn-frontend', WPBN_PLUGIN_URL . 'assets/js/frontend.js', [ 'jquery' ], WPBN_VERSION, true );
@@ -80,6 +100,9 @@ class Plugin {
         wp_enqueue_script( 'wpbn-frontend' );
     }
 
+    /**
+     * Enqueue admin assets.
+     */
     public function enqueue_admin(): void {
         wp_register_style( 'wpbn-admin', WPBN_PLUGIN_URL . 'assets/css/admin.css', [], WPBN_VERSION );
         wp_register_script( 'wpbn-admin', WPBN_PLUGIN_URL . 'assets/js/admin.js', [ 'jquery' ], WPBN_VERSION, true );

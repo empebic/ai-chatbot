@@ -6,7 +6,11 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+/**
+ * MailPoet newsletter provider implementation.
+ */
 class MailPoetProvider implements NewsletterProviderInterface {
+    /** @inheritDoc */
     public function upsert( array $subscriber, array $options = [] ): bool {
         if ( ! class_exists( 'MailPoet\\API\\API' ) ) {
             return false;
@@ -43,6 +47,7 @@ class MailPoetProvider implements NewsletterProviderInterface {
         return false;
     }
 
+    /** @inheritDoc */
     public function unsubscribe( string $email, array $options = [] ): bool {
         if ( ! class_exists( 'MailPoet\\API\\API' ) ) {
             return false;

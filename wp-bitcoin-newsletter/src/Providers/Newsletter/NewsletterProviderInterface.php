@@ -2,11 +2,26 @@
 
 namespace WpBitcoinNewsletter\Providers\Newsletter;
 
+/**
+ * Newsletter providers must support upsert and unsubscribe.
+ */
 interface NewsletterProviderInterface {
-    /** Create or update a subscriber; return true on success */
+    /**
+     * Create or update a subscriber.
+     *
+     * @param array $subscriber Subscriber fields.
+     * @param array $options    Provider-specific options.
+     * @return bool True on success.
+     */
     public function upsert( array $subscriber, array $options = [] ): bool;
 
-    /** Handle unsubscribe if applicable */
+    /**
+     * Unsubscribe an email address.
+     *
+     * @param string $email   Email address.
+     * @param array  $options Provider-specific options.
+     * @return bool True on success.
+     */
     public function unsubscribe( string $email, array $options = [] ): bool;
 }
 

@@ -10,7 +10,17 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+/**
+ * Synchronization services for payment and newsletter providers.
+ */
 class SyncService {
+    /**
+     * Handle payment marked as paid by provider.
+     *
+     * @param string $invoiceId Invoice identifier.
+     * @param array  $metadata  Optional metadata from webhook.
+     * @return array { ok: bool, redirect?: string, message?: string }
+     */
     public static function handlePaymentPaid( string $invoiceId, array $metadata = [] ): array {
         global $wpdb;
         $table      = Installer::tableName( $wpdb );
@@ -47,6 +57,12 @@ class SyncService {
         return [ 'ok' => true, 'redirect' => $welcomeUrl ];
     }
 
+    /**
+     * Resync a subscriber to the configured newsletter provider.
+     *
+     * @param int $subscriberId Subscriber ID.
+     * @return bool True on success.
+     */
     public static function resync( int $subscriberId ): bool {
         global $wpdb;
         $table      = Installer::tableName( $wpdb );
@@ -109,6 +125,12 @@ class SyncService {
         return $synced;
     }
 
+    /**
+     * Send welcome email to subscriber and admin notification.
+     *
+     * @param int    $formId Form ID.
+     * @param string $email  Subscriber email.
+     */
     private static function send_emails( int $formId, string $email ): void {
         $emailMeta = get_post_meta( $formId, '_wpbn_email', true );
         $template  = is_array( $emailMeta ) && ! empty( $emailMeta['email_template'] ) ? $emailMeta['email_template'] : __( 'Thank you for subscribing!', 'wpbn' );

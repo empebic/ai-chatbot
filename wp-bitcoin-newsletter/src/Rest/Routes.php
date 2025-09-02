@@ -11,7 +11,11 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+/**
+ * REST API routes and callbacks.
+ */
 class Routes {
+    /** Register routes under wpbn/v1. */
     public static function register(): void {
         register_rest_route(
             'wpbn/v1',
@@ -64,6 +68,12 @@ class Routes {
         );
     }
 
+    /**
+     * Coinsnap webhook endpoint.
+     *
+     * @param \WP_REST_Request $request Request.
+     * @return \WP_Error|\WP_REST_Response
+     */
     public static function coinsnap_webhook( $request ) {
         if ( ! CoinsnapProvider::verify_signature() ) {
             return new \WP_Error( 'invalid_signature', 'Invalid signature', [ 'status' => 401 ] );
@@ -77,6 +87,12 @@ class Routes {
         return new \WP_Error( 'invalid', 'Invalid webhook', [ 'status' => 400 ] );
     }
 
+    /**
+     * BTCPay webhook endpoint.
+     *
+     * @param \WP_REST_Request $request Request.
+     * @return \WP_Error|\WP_REST_Response
+     */
     public static function btcpay_webhook( $request ) {
         if ( ! BTCPayProvider::verify_signature() ) {
             return new \WP_Error( 'invalid_signature', 'Invalid signature', [ 'status' => 401 ] );
@@ -90,6 +106,12 @@ class Routes {
         return new \WP_Error( 'invalid', 'Invalid webhook', [ 'status' => 400 ] );
     }
 
+    /**
+     * Check invoice status.
+     *
+     * @param \WP_REST_Request $request Request.
+     * @return \WP_REST_Response
+     */
     public static function status( $request ) {
         $invoice = sanitize_text_field( (string) $request['invoice'] );
         global $wpdb;
@@ -109,12 +131,24 @@ class Routes {
         );
     }
 
+    /**
+     * Resync a single subscriber.
+     *
+     * @param \WP_REST_Request $request Request.
+     * @return \WP_REST_Response
+     */
     public static function resync( $request ) {
         $id = (int) $request['id'];
         $ok = SyncService::resync( $id );
         return rest_ensure_response( [ 'ok' => (bool) $ok ] );
     }
 
+    /**
+     * Resync multiple subscribers.
+     *
+     * @param \WP_REST_Request $request Request.
+     * @return \WP_REST_Response
+     */
     public static function bulk_resync( $request ) {
         $ids = (array) $request->get_param( 'ids' );
         $ids = array_map( 'absint', $ids );

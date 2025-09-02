@@ -6,7 +6,11 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+/**
+ * Mailchimp newsletter provider implementation.
+ */
 class MailchimpProvider implements NewsletterProviderInterface {
+    /** @inheritDoc */
     public function upsert( array $subscriber, array $options = [] ): bool {
         $apiKey     = (string) ( $options['mailchimp_api_key'] ?? '' );
         $audienceId = (string) ( $options['mailchimp_audience_id'] ?? '' );
@@ -47,6 +51,7 @@ class MailchimpProvider implements NewsletterProviderInterface {
         return $code >= 200 && $code < 300;
     }
 
+    /** @inheritDoc */
     public function unsubscribe( string $email, array $options = [] ): bool {
         $apiKey     = (string) ( $options['mailchimp_api_key'] ?? '' );
         $audienceId = (string) ( $options['mailchimp_audience_id'] ?? '' );

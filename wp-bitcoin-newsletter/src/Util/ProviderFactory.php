@@ -13,7 +13,16 @@ use WpBitcoinNewsletter\Providers\Newsletter\MailchimpProvider;
 use WpBitcoinNewsletter\Providers\Newsletter\SendinblueProvider;
 use WpBitcoinNewsletter\Providers\Newsletter\ConvertKitProvider;
 
+/**
+ * Factory to resolve payment and newsletter provider implementations.
+ */
 class ProviderFactory {
+    /**
+     * Resolve payment provider for a given form.
+     *
+     * @param int $formId Form ID.
+     * @return PaymentProviderInterface Provider instance.
+     */
     public static function payment_for_form( int $formId ): PaymentProviderInterface {
         $settings = Settings::getSettings();
         $payment  = get_post_meta( $formId, '_wpbn_payment', true );
@@ -28,6 +37,12 @@ class ProviderFactory {
         }
     }
 
+    /**
+     * Resolve newsletter provider (optionally by form override).
+     *
+     * @param int $formId Optional form ID for override.
+     * @return NewsletterProviderInterface Provider instance.
+     */
     public static function newsletter( int $formId = 0 ): NewsletterProviderInterface {
         $settings     = Settings::getSettings();
         $providerMeta = $formId ? get_post_meta( $formId, '_wpbn_provider', true ) : [];

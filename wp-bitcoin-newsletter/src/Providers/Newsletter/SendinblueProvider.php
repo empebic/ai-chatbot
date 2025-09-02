@@ -6,7 +6,11 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+/**
+ * Sendinblue/Brevo newsletter provider implementation.
+ */
 class SendinblueProvider implements NewsletterProviderInterface {
+    /** @inheritDoc */
     public function upsert( array $subscriber, array $options = [] ): bool {
         $apiKey = (string) ( $options['sendinblue_api_key'] ?? '' );
         $listId = (int) ( $options['sendinblue_list_id'] ?? 0 );
@@ -43,6 +47,7 @@ class SendinblueProvider implements NewsletterProviderInterface {
         return $code >= 200 && $code < 300;
     }
 
+    /** @inheritDoc */
     public function unsubscribe( string $email, array $options = [] ): bool {
         $apiKey = (string) ( $options['sendinblue_api_key'] ?? '' );
         if ( ! $apiKey ) {

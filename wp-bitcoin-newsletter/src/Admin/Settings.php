@@ -6,13 +6,22 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+/**
+ * Admin settings registration and rendering.
+ */
 class Settings {
     public const OPTION_KEY = 'wpbn_settings';
 
+    /** Register hooks to initialize settings. */
     public static function register(): void {
         add_action( 'admin_init', [ __CLASS__, 'register_settings' ] );
     }
 
+    /**
+     * Get merged settings with defaults.
+     *
+     * @return array Settings array.
+     */
     public static function get_settings(): array {
         $defaults = [
             'payment_provider'      => 'coinsnap',
@@ -43,6 +52,7 @@ class Settings {
         return array_merge( $defaults, $opts );
     }
 
+    /** Register settings, sections, and fields. */
     public static function register_settings(): void {
         register_setting(
             'wpbn_settings_group',
@@ -286,6 +296,12 @@ class Settings {
         );
     }
 
+    /**
+     * Sanitize settings array.
+     *
+     * @param mixed $input Raw input from WordPress settings API.
+     * @return array Sanitized settings.
+     */
     public static function sanitize( $input ) {
         if ( ! is_array( $input ) ) {
             return [];
@@ -313,6 +329,7 @@ class Settings {
         return $out;
     }
 
+    /** Render settings page. */
     public static function render_page(): void {
         echo '<div class="wrap wpbn-admin">';
         echo '<h1>' . esc_html__( 'WP Bitcoin Newsletter Settings', 'wpbn' ) . '</h1>';

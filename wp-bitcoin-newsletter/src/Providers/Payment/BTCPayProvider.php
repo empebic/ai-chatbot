@@ -8,7 +8,11 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+/**
+ * BTCPay Server payment provider implementation.
+ */
 class BTCPayProvider implements PaymentProviderInterface {
+    /** @inheritDoc */
     public function create_invoice( int $formId, int $amount, string $currency, array $subscriberData ): array {
         $s      = Settings::getSettings();
         $host   = rtrim( (string) $s['btcpay_host'], '/' );
@@ -54,6 +58,7 @@ class BTCPayProvider implements PaymentProviderInterface {
         return [];
     }
 
+    /** @inheritDoc */
     public function handle_webhook( array $request ): array {
         do_action( 'wpbn_btcpay_webhook_received', $request );
         $invoiceId = isset( $request['invoiceId'] ) ? (string) $request['invoiceId'] : '';
@@ -66,6 +71,11 @@ class BTCPayProvider implements PaymentProviderInterface {
         ];
     }
 
+    /**
+     * Verify BTCPay webhook signature.
+     *
+     * @return bool True if valid.
+     */
     public static function verify_signature(): bool {
         $s       = Settings::getSettings();
         $secret  = (string) $s['btcpay_webhook_secret'];

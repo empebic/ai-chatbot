@@ -6,13 +6,25 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+/**
+ * Database table installer and utilities.
+ */
 class Installer {
+    /**
+     * Get subscribers table name with prefix.
+     *
+     * @param \wpdb|null $wpdbParam Optional wpdb instance.
+     * @return string Table name.
+     */
     public static function tableName( $wpdbParam = null ): string {
         global $wpdb;
         $db = $wpdbParam ?: $wpdb;
         return $db->prefix . 'wpbn_subscribers';
     }
 
+    /**
+     * Activation callback to create/update DB schema.
+     */
     public static function activate(): void {
         global $wpdb;
         $table          = self::tableName( $wpdb );

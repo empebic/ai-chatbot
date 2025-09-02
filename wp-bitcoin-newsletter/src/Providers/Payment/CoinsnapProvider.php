@@ -8,7 +8,11 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+/**
+ * CoinSnap payment provider implementation.
+ */
 class CoinsnapProvider implements PaymentProviderInterface {
+    /** @inheritDoc */
     public function create_invoice( int $formId, int $amount, string $currency, array $subscriberData ): array {
         $settings = Settings::getSettings();
         $apiKey   = $settings['coinsnap_api_key'];
@@ -70,6 +74,7 @@ class CoinsnapProvider implements PaymentProviderInterface {
         return [];
     }
 
+    /** @inheritDoc */
     public function handle_webhook( array $request ): array {
         do_action( 'wpbn_coinsnap_webhook_received', $request );
         $invoiceId = isset( $request['invoiceId'] ) ? (string) $request['invoiceId'] : '';
@@ -82,6 +87,11 @@ class CoinsnapProvider implements PaymentProviderInterface {
         ];
     }
 
+    /**
+     * Verify webhook HMAC signature.
+     *
+     * @return bool True if signature valid.
+     */
     public static function verify_signature(): bool {
         $settings = Settings::getSettings();
         $secret   = (string) $settings['coinsnap_webhook_secret'];

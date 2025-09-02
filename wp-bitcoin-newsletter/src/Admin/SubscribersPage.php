@@ -8,7 +8,11 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+/**
+ * Admin page for viewing and exporting subscribers.
+ */
 class SubscribersPage {
+    /** Render the subscribers admin page. */
     public static function render_page(): void {
         if ( isset( $_GET['wpbn_export'] ) && current_user_can( 'manage_options' ) ) {
             self::export_csv();
@@ -101,6 +105,7 @@ class SubscribersPage {
         echo '</div>';
     }
 
+    /** Export subscribers as CSV and exit. */
     private static function export_csv(): void {
         if ( ! current_user_can( 'manage_options' ) ) {
             wp_die( __( 'Unauthorized', 'wpbn' ) );

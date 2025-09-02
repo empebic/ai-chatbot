@@ -10,13 +10,23 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+/**
+ * Shortcode renderer and AJAX handler for newsletter form.
+ */
 class FormShortcode {
+    /** Register shortcode and AJAX actions. */
     public static function register(): void {
         add_shortcode( 'coinsnap_newsletter_form', [ __CLASS__, 'render' ] );
         add_action( 'wp_ajax_wpbn_submit_form', [ __CLASS__, 'handle_submit' ] );
         add_action( 'wp_ajax_nopriv_wpbn_submit_form', [ __CLASS__, 'handle_submit' ] );
     }
 
+    /**
+     * Render the newsletter form.
+     *
+     * @param array $atts Shortcode attributes.
+     * @return string HTML output.
+     */
     public static function render( $atts ): string {
         $atts = shortcode_atts(
             [
@@ -80,6 +90,12 @@ class FormShortcode {
         return apply_filters( 'wpbn_form_html', $html, $postId );
     }
 
+    /**
+     * Build ordered form fields map from meta.
+     *
+     * @param array $fields Meta values.
+     * @return array Structured fields.
+     */
     private static function build_ordered_fields( array $fields ): array {
         $map       = [];
         $candidates = [
@@ -113,6 +129,12 @@ class FormShortcode {
         return $map;
     }
 
+    /**
+     * Render a single input/select field.
+     *
+     * @param array $field Field config.
+     * @return string HTML.
+     */
     private static function render_field( array $field ): string {
         $required     = $field['required'] ? ' required' : '';
         $requiredMark = $field['required'] ? ' <span class="required">*</span>' : '';
@@ -132,6 +154,7 @@ class FormShortcode {
         return '<p class="wpbn-field"><label>' . $label . $requiredMark . '<br /><input type="text" name="' . $name . '"' . $required . ' /></label></p>';
     }
 
+    /** Handle AJAX form submission. */
     public static function handle_submit(): void {
         \check_ajax_referer( 'wpbn_form_' . ( isset( $_POST['wpbn_form_id'] ) ? absint( $_POST['wpbn_form_id'] ) : 0 ), 'wpbn_nonce' );
 

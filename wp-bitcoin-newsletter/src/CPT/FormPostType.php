@@ -6,9 +6,13 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+/**
+ * Custom Post Type for newsletter forms and its meta UI.
+ */
 class FormPostType {
     public const POST_TYPE = 'coinsnap_newsletter';
 
+    /** Register CPT and metabox hooks. */
     public static function register(): void {
         $labels = [
             'name'               => __( 'Newsletter Forms', 'wpbn' ),
@@ -44,6 +48,7 @@ class FormPostType {
         add_action( 'save_post_' . self::POST_TYPE, [ __CLASS__, 'save_meta' ], 10, 2 );
     }
 
+    /** Register meta boxes for the CPT. */
     public static function register_metaboxes(): void {
         add_meta_box( 'wpbn_fields', __( 'Form Fields', 'wpbn' ), [ __CLASS__, 'render_fields_metabox' ], self::POST_TYPE, 'normal' );
         add_meta_box( 'wpbn_payment', __( 'Payment Settings', 'wpbn' ), [ __CLASS__, 'render_payment_metabox' ], self::POST_TYPE, 'side' );
@@ -53,6 +58,7 @@ class FormPostType {
         add_meta_box( 'wpbn_shortcode', __( 'Shortcode', 'wpbn' ), [ __CLASS__, 'render_shortcode_metabox' ], self::POST_TYPE, 'side' );
     }
 
+    /** Render the fields metabox. */
     public static function render_fields_metabox( \WP_Post $post ): void {
         wp_nonce_field( 'wpbn_save_form_' . $post->ID, 'wpbn_form_nonce' );
 
@@ -104,6 +110,7 @@ class FormPostType {
         self::render_custom_row( 'custom2', $values );
     }
 
+    /** Render one toggle-able field row. */
     private static function render_toggle_row( string $slug, array $values ): void {
         echo '<fieldset style="border:1px solid #ddd;padding:10px;margin:10px 0;">';
         echo '<legend><strong>' . esc_html( ucwords( str_replace( '_', ' ', $slug ) ) ) . '</strong></legend>';
@@ -114,6 +121,7 @@ class FormPostType {
         echo '</fieldset>';
     }
 
+    /** Render one custom-field configuration row. */
     private static function render_custom_row( string $slug, array $values ): void {
         echo '<fieldset style="border:1px solid #ddd;padding:10px;margin:10px 0;">';
         echo '<legend><strong>' . esc_html( ucwords( str_replace( '_', ' ', $slug ) ) ) . '</strong></legend>';
@@ -130,6 +138,7 @@ class FormPostType {
         echo '</fieldset>';
     }
 
+    /** Render the payment metabox. */
     public static function render_payment_metabox( \WP_Post $post ): void {
         $defaults = [
             'amount'            => '21',
@@ -156,6 +165,7 @@ class FormPostType {
         echo '</select></label></p>';
     }
 
+    /** Render the email metabox. */
     public static function render_email_metabox( \WP_Post $post ): void {
         $defaults = [
             'welcome_url'      => '',
@@ -176,6 +186,7 @@ class FormPostType {
         echo '<textarea class="widefat" rows="6" name="wpbn_email[email_template]">' . esc_textarea( $values['email_template'] ) . '</textarea></label></p>';
     }
 
+    /** Render the GDPR metabox. */
     public static function render_gdpr_metabox( \WP_Post $post ): void {
         $defaults = [
             'gdpr_text'          => __( 'I consent to receive newsletters and accept the privacy policy.', 'wpbn' ),
@@ -194,6 +205,7 @@ class FormPostType {
         echo '<p><label>' . esc_html__( 'Data Retention (days, 0 = keep indefinitely)', 'wpbn' ) . ': <input type="number" min="0" name="wpbn_gdpr[retention_days]" value="' . esc_attr( $values['retention_days'] ) . '" /></label></p>';
     }
 
+    /** Render the provider override metabox. */
     public static function render_provider_metabox( \WP_Post $post ): void {
         $defaults = [
             'provider_override'     => '',
@@ -227,11 +239,18 @@ class FormPostType {
         echo '<p><label>' . esc_html__( 'ConvertKit Form ID (override)', 'wpbn' ) . '<br /><input type="text" class="widefat" name="wpbn_provider[convertkit_form_id]" value="' . esc_attr( $values['convertkit_form_id'] ) . '" /></label></p>';
     }
 
+    /** Render the shortcode helper metabox. */
     public static function render_shortcode_metabox( \WP_Post $post ): void {
         $shortcode = '[coinsnap_newsletter_form id="' . (int) $post->ID . '"]';
         echo '<input type="text" class="widefat" readonly value="' . esc_attr( $shortcode ) . '" onclick="this.select();" />';
     }
 
+    /**
+     * Save all metaboxes.
+     *
+     * @param int      $postId Post ID.
+     * @param \WP_Post $post   Post object.
+     */
     public static function save_meta( int $postId, \WP_Post $post ): void {
         if ( ! isset( $_POST['wpbn_form_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['wpbn_form_nonce'] ) ), 'wpbn_save_form_' . $postId ) ) {
             return;
