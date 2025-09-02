@@ -2,21 +2,20 @@
 
 namespace WpBitcoinNewsletter\Database;
 
-defined('ABSPATH') || exit;
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
 
-class Installer
-{
-    public static function tableName($wpdbParam = null): string
-    {
+class Installer {
+    public static function tableName( $wpdbParam = null ): string {
         global $wpdb;
         $db = $wpdbParam ?: $wpdb;
         return $db->prefix . 'wpbn_subscribers';
     }
 
-    public static function activate(): void
-    {
+    public static function activate(): void {
         global $wpdb;
-        $table = self::tableName($wpdb);
+        $table          = self::tableName( $wpdb );
         $charsetCollate = $wpdb->get_charset_collate();
 
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
@@ -49,7 +48,7 @@ class Installer
             KEY provider_sync_status (provider_sync_status)
         ) $charsetCollate;";
 
-        \dbDelta($sql);
+        \dbDelta( $sql );
     }
 }
 

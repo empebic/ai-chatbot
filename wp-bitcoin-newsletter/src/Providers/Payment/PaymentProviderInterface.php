@@ -2,17 +2,24 @@
 
 namespace WpBitcoinNewsletter\Providers\Payment;
 
-interface PaymentProviderInterface
-{
+interface PaymentProviderInterface {
     /**
-     * Create a payment invoice and return an array containing keys:
-     * - invoice_id (string)
-     * - payment_url (string)
-     * - expires_at (int timestamp) optional
+     * Create a payment invoice.
+     *
+     * @param int    $formId         Form ID.
+     * @param int    $amount         Amount.
+     * @param string $currency       Currency code.
+     * @param array  $subscriberData Subscriber data.
+     * @return array { invoice_id: string, payment_url: string, expires_at?: int }
      */
-    public function createInvoice(int $formId, int $amount, string $currency, array $subscriberData): array;
+    public function createInvoice( int $formId, int $amount, string $currency, array $subscriberData ): array;
 
-    /** Validate webhook or callback and return ['invoice_id' => string, 'paid' => bool, 'metadata' => array] */
-    public function handleWebhook(array $request): array;
+    /**
+     * Validate webhook or callback.
+     *
+     * @param array $request Parsed request body.
+     * @return array { invoice_id: string, paid: bool, metadata: array }
+     */
+    public function handleWebhook( array $request ): array;
 }
 

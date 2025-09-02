@@ -2,60 +2,69 @@
 
 namespace WpBitcoinNewsletter\Providers\Newsletter;
 
-class SendinblueProvider implements NewsletterProviderInterface
-{
-    public function upsert(array $subscriber, array $options = []): bool
-    {
-        $apiKey = (string)($options['sendinblue_api_key'] ?? '');
-        $listId = (int)($options['sendinblue_list_id'] ?? 0);
-        if (!$apiKey || !$listId) return false;
-        $url = 'https://api.brevo.com/v3/contacts';
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
+
+class SendinblueProvider implements NewsletterProviderInterface {
+    public function upsert( array $subscriber, array $options = [] ): bool {
+        $apiKey = (string) ( $options['sendinblue_api_key'] ?? '' );
+        $listId = (int) ( $options['sendinblue_list_id'] ?? 0 );
+        if ( ! $apiKey || ! $listId ) {
+            return false;
+        }
+        $url     = 'https://api.brevo.com/v3/contacts';
         $payload = [
-            'email' => (string)$subscriber['email'],
+            'email'      => (string) $subscriber['email'],
             'attributes' => [
-                'FIRSTNAME' => (string)($subscriber['first_name'] ?? ''),
-                'LASTNAME' => (string)($subscriber['last_name'] ?? ''),
-                'SMS' => (string)($subscriber['phone'] ?? ''),
-                'COMPANY' => (string)($subscriber['company'] ?? ''),
+                'FIRSTNAME' => (string) ( $subscriber['first_name'] ?? '' ),
+                'LASTNAME'  => (string) ( $subscriber['last_name'] ?? '' ),
+                'SMS'       => (string) ( $subscriber['phone'] ?? '' ),
+                'COMPANY'   => (string) ( $subscriber['company'] ?? '' ),
             ],
-            'listIds' => [$listId],
+            'listIds'       => [ $listId ],
             'updateEnabled' => true,
         ];
         $args = [
-            'method' => 'POST',
+            'method'  => 'POST',
             'headers' => [
-                'api-key' => $apiKey,
+                'api-key'      => $apiKey,
                 'Content-Type' => 'application/json',
-                'accept' => 'application/json',
+                'accept'       => 'application/json',
             ],
             'timeout' => 20,
-            'body' => wp_json_encode($payload),
+            'body'    => wp_json_encode( $payload ),
         ];
-        $res = wp_remote_request($url, $args);
-        if (is_wp_error($res)) return false;
-        $code = wp_remote_retrieve_response_code($res);
+        $res = wp_remote_request( $url, $args );
+        if ( is_wp_error( $res ) ) {
+            return false;
+        }
+        $code = wp_remote_retrieve_response_code( $res );
         return $code >= 200 && $code < 300;
     }
 
-    public function unsubscribe(string $email, array $options = []): bool
-    {
-        $apiKey = (string)($options['sendinblue_api_key'] ?? '');
-        if (!$apiKey) return false;
-        $url = 'https://api.brevo.com/v3/contacts/' . rawurlencode(strtolower(trim($email)));
+    public function unsubscribe( string $email, array $options = [] ): bool {
+        $apiKey = (string) ( $options['sendinblue_api_key'] ?? '' );
+        if ( ! $apiKey ) {
+            return false;
+        }
+        $url     = 'https://api.brevo.com/v3/contacts/' . rawurlencode( strtolower( trim( $email ) ) );
         $payload = [ 'unlinkListIds' => [] ];
-        $args = [
-            'method' => 'PUT',
+        $args    = [
+            'method'  => 'PUT',
             'headers' => [
-                'api-key' => $apiKey,
+                'api-key'      => $apiKey,
                 'Content-Type' => 'application/json',
-                'accept' => 'application/json',
+                'accept'       => 'application/json',
             ],
             'timeout' => 20,
-            'body' => wp_json_encode($payload),
+            'body'    => wp_json_encode( $payload ),
         ];
-        $res = wp_remote_request($url, $args);
-        if (is_wp_error($res)) return false;
-        $code = wp_remote_retrieve_response_code($res);
+        $res = wp_remote_request( $url, $args );
+        if ( is_wp_error( $res ) ) {
+            return false;
+        }
+        $code = wp_remote_retrieve_response_code( $res );
         return $code >= 200 && $code < 300;
     }
 }
