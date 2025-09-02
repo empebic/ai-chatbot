@@ -1,4 +1,10 @@
 <?php
+/**
+ * Subscribers admin page.
+ *
+ * @package wp-bitcoin-newsletter
+ */
+declare(strict_types=1);
 
 namespace WpBitcoinNewsletter\Admin;
 
@@ -20,7 +26,7 @@ class SubscribersPage {
         }
 
         $status = isset( $_GET['status'] ) ? sanitize_text_field( wp_unslash( $_GET['status'] ) ) : '';
-        $formId = isset( $_GET['form_id'] ) ? absint( $_GET['form_id'] ) : 0;
+        $form_id = isset( $_GET['form_id'] ) ? absint( $_GET['form_id'] ) : 0;
 
         global $wpdb;
         $table  = Installer::tableName( $wpdb );
@@ -30,15 +36,16 @@ class SubscribersPage {
             $where[]  = 'payment_status = %s';
             $params[] = $status;
         }
-        if ( $formId ) {
+        if ( $form_id ) {
             $where[]  = 'form_id = %d';
-            $params[] = $formId;
+            $params[] = $form_id;
         }
         $sql = "SELECT id, email, first_name, last_name, payment_status, provider_sync_status, created_at, payment_amount, currency, form_id FROM {$table}";
         if ( $where ) {
             $sql .= ' WHERE ' . implode( ' AND ', $where );
         }
         $sql  .= ' ORDER BY id DESC LIMIT 200';
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
         $items = $params ? $wpdb->get_results( $wpdb->prepare( $sql, $params ), ARRAY_A ) : $wpdb->get_results( $sql, ARRAY_A );
 
         echo '<div class="wrap wpbn-admin">';
@@ -51,7 +58,7 @@ class SubscribersPage {
             echo '<option value="' . esc_attr( $k ) . '" ' . selected( $k, $status, false ) . '>' . esc_html( $label ) . '</option>';
         }
         echo '</select></label> ';
-        echo '<label>' . esc_html__( 'Form ID', 'wpbn' ) . ': <input type="number" name="form_id" value="' . ( $formId ? (int) $formId : '' ) . '" /></label> ';
+        echo '<label>' . esc_html__( 'Form ID', 'wpbn' ) . ': <input type="number" name="form_id" value="' . ( $form_id ? (int) $form_id : '' ) . '" /></label> ';
         submit_button( __( 'Filter', 'wpbn' ), 'secondary', '', false );
         echo ' <a class="button" href="' . esc_url( add_query_arg( [ 'wpbn_export' => 1 ] ) ) . '">' . esc_html__( 'Export CSV', 'wpbn' ) . '</a>';
         echo '</form>';
@@ -108,10 +115,12 @@ class SubscribersPage {
     /** Export subscribers as CSV and exit. */
     private static function export_csv(): void {
         if ( ! current_user_can( 'manage_options' ) ) {
-            wp_die( __( 'Unauthorized', 'wpbn' ) );
+            wp_die( esc_html__( 'Unauthorized', 'wpbn' ) );
         }
         global $wpdb;
         $table = Installer::tableName( $wpdb );
+        // Table name is dynamic but trusted; only values are user input.
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
         $rows  = $wpdb->get_results( "SELECT * FROM {$table} ORDER BY id DESC", ARRAY_A );
         nocache_headers();
         header( 'Content-Type: text/csv; charset=utf-8' );

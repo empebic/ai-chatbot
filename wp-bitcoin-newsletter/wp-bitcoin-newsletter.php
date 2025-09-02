@@ -1,5 +1,10 @@
 <?php
-declare(strict_types=1);
+/**
+ * Main plugin loader.
+ *
+ * @package wp-bitcoin-newsletter
+ */
+
 /**
  * Plugin Name: WP Bitcoin Newsletter (Pay-per-Subscribe)
  * Description: Newsletter subscriptions are processed only after successful Bitcoin Lightning payment. Supports multiple newsletter providers and subscriber management.
@@ -12,6 +17,8 @@ declare(strict_types=1);
  *
  * @package wp-bitcoin-newsletter
  */
+
+declare(strict_types=1);
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
