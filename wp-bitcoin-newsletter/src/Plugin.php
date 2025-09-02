@@ -31,21 +31,21 @@ class Plugin {
         add_action( 'init', [ FormPostType::class, 'register' ] );
         add_action( 'init', [ FormShortcode::class, 'register' ] );
 
-        add_action( 'admin_menu', [ $this, 'registerAdminMenu' ] );
+        add_action( 'admin_menu', [ $this, 'register_admin_menu' ] );
         AdminSettings::register();
-        add_action( 'rest_api_init', [ $this, 'registerRestRoutes' ] );
+        add_action( 'rest_api_init', [ $this, 'register_rest_routes' ] );
 
-        add_action( 'wp_enqueue_scripts', [ $this, 'enqueueFrontend' ] );
-        add_action( 'admin_enqueue_scripts', [ $this, 'enqueueAdmin' ] );
+        add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_frontend' ] );
+        add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin' ] );
     }
 
-    public function registerAdminMenu(): void {
+    public function register_admin_menu(): void {
         add_menu_page(
             __( 'Newsletter Subscribers', 'wpbn' ),
             __( 'Subscribers', 'wpbn' ),
             'manage_options',
             'wpbn-subscribers',
-            [ SubscribersPage::class, 'renderPage' ],
+            [ SubscribersPage::class, 'render_page' ],
             'dashicons-email',
             56
         );
@@ -56,16 +56,16 @@ class Plugin {
             __( 'Settings', 'wpbn' ),
             'manage_options',
             'wpbn-settings',
-            [ AdminSettings::class, 'renderPage' ]
+            [ AdminSettings::class, 'render_page' ]
         );
     }
 
-    public function registerRestRoutes(): void {
+    public function register_rest_routes(): void {
         RestRoutes::register();
     }
 
     // Simple test hook to simulate payment success when visiting ?wpbn_invoice=xyz.
-    public function simulatePayment(): void {
+    public function simulate_payment(): void {
         if ( ! is_admin() && isset( $_GET['wpbn_invoice'] ) ) {
             $invoiceId = sanitize_text_field( wp_unslash( $_GET['wpbn_invoice'] ) );
             $res       = \WpBitcoinNewsletter\Services\SyncService::handlePaymentPaid( $invoiceId );
@@ -76,7 +76,7 @@ class Plugin {
         }
     }
 
-    public function enqueueFrontend(): void {
+    public function enqueue_frontend(): void {
         wp_register_style( 'wpbn-frontend', WPBN_PLUGIN_URL . 'assets/css/frontend.css', [], WPBN_VERSION );
         wp_register_script( 'wpbn-frontend', WPBN_PLUGIN_URL . 'assets/js/frontend.js', [ 'jquery' ], WPBN_VERSION, true );
 
@@ -90,7 +90,7 @@ class Plugin {
         wp_enqueue_script( 'wpbn-frontend' );
     }
 
-    public function enqueueAdmin(): void {
+    public function enqueue_admin(): void {
         wp_register_style( 'wpbn-admin', WPBN_PLUGIN_URL . 'assets/css/admin.css', [], WPBN_VERSION );
         wp_register_script( 'wpbn-admin', WPBN_PLUGIN_URL . 'assets/js/admin.js', [ 'jquery' ], WPBN_VERSION, true );
 

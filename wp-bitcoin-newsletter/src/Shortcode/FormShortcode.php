@@ -13,8 +13,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 class FormShortcode {
     public static function register(): void {
         add_shortcode( 'coinsnap_newsletter_form', [ __CLASS__, 'render' ] );
-        add_action( 'wp_ajax_wpbn_submit_form', [ __CLASS__, 'handleSubmit' ] );
-        add_action( 'wp_ajax_nopriv_wpbn_submit_form', [ __CLASS__, 'handleSubmit' ] );
+        add_action( 'wp_ajax_wpbn_submit_form', [ __CLASS__, 'handle_submit' ] );
+        add_action( 'wp_ajax_nopriv_wpbn_submit_form', [ __CLASS__, 'handle_submit' ] );
     }
 
     public static function render( $atts ): string {
@@ -45,7 +45,7 @@ class FormShortcode {
         $nonce        = wp_create_nonce( 'wpbn_form_' . $postId );
         $honeypotName = 'website';
 
-        $ordered = self::buildOrderedFields( $fields );
+        $ordered = self::build_ordered_fields( $fields );
 
         ob_start();
         echo '<form class="wpbn-form" method="post" action="' . esc_url( admin_url( 'admin-ajax.php' ) ) . '" data-form-id="' . esc_attr( $postId ) . '">';
@@ -59,7 +59,7 @@ class FormShortcode {
         echo '<p class="wpbn-field"><label>' . esc_html( $emailLabel ) . ' <span class="required">*</span><br /><input type="email" name="email" required /></label></p>';
 
         foreach ( $ordered as $field ) {
-            echo self::renderField( $field );
+            echo self::render_field( $field );
         }
 
         echo '<p class="wpbn-gdpr"><label><input type="checkbox" name="gdpr_consent" value="1" required /> ' . wp_kses_post( $gdprText );
@@ -80,7 +80,7 @@ class FormShortcode {
         return apply_filters( 'wpbn_form_html', $html, $postId );
     }
 
-    private static function buildOrderedFields( array $fields ): array {
+    private static function build_ordered_fields( array $fields ): array {
         $map       = [];
         $candidates = [
             'first_name' => __( 'First Name', 'wpbn' ),
@@ -113,7 +113,7 @@ class FormShortcode {
         return $map;
     }
 
-    private static function renderField( array $field ): string {
+    private static function render_field( array $field ): string {
         $required     = $field['required'] ? ' required' : '';
         $requiredMark = $field['required'] ? ' <span class="required">*</span>' : '';
         $name         = esc_attr( $field['slug'] );
@@ -132,7 +132,7 @@ class FormShortcode {
         return '<p class="wpbn-field"><label>' . $label . $requiredMark . '<br /><input type="text" name="' . $name . '"' . $required . ' /></label></p>';
     }
 
-    public static function handleSubmit(): void {
+    public static function handle_submit(): void {
         \check_ajax_referer( 'wpbn_form_' . ( isset( $_POST['wpbn_form_id'] ) ? absint( $_POST['wpbn_form_id'] ) : 0 ), 'wpbn_nonce' );
 
         $formId = isset( $_POST['wpbn_form_id'] ) ? absint( $_POST['wpbn_form_id'] ) : 0;
@@ -227,8 +227,8 @@ class FormShortcode {
         $amount   = isset( $params['amount'] ) ? (int) $params['amount'] : $amount;
         $currency = isset( $params['currency'] ) ? (string) $params['currency'] : $currency;
 
-        $provider  = ProviderFactory::paymentForForm( $formId );
-        $invoice   = $provider->createInvoice( $formId, $amount, $currency, $data );
+        $provider  = ProviderFactory::payment_for_form( $formId );
+        $invoice   = $provider->create_invoice( $formId, $amount, $currency, $data );
         $invoiceId = isset( $invoice['invoice_id'] ) ? (string) $invoice['invoice_id'] : '';
         $paymentUrl = isset( $invoice['payment_url'] ) ? (string) $invoice['payment_url'] : '';
 

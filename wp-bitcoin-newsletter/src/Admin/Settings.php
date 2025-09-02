@@ -10,10 +10,10 @@ class Settings {
     public const OPTION_KEY = 'wpbn_settings';
 
     public static function register(): void {
-        add_action( 'admin_init', [ __CLASS__, 'registerSettings' ] );
+        add_action( 'admin_init', [ __CLASS__, 'register_settings' ] );
     }
 
-    public static function getSettings(): array {
+    public static function get_settings(): array {
         $defaults = [
             'payment_provider'      => 'coinsnap',
             'default_amount'        => 21,
@@ -43,7 +43,7 @@ class Settings {
         return array_merge( $defaults, $opts );
     }
 
-    public static function registerSettings(): void {
+    public static function register_settings(): void {
         register_setting(
             'wpbn_settings_group',
             self::OPTION_KEY,
@@ -66,7 +66,7 @@ class Settings {
             'payment_provider',
             __( 'Default Payment Provider', 'wpbn' ),
             function () {
-                $s = self::getSettings();
+                $s = self::get_settings();
                 echo '<select name="' . esc_attr( self::OPTION_KEY ) . '[payment_provider]">';
                 foreach ( [
                     'coinsnap' => 'Coinsnap',
@@ -84,7 +84,7 @@ class Settings {
             'default_amount',
             __( 'Default Amount', 'wpbn' ),
             function () {
-                $s = self::getSettings();
+                $s = self::get_settings();
                 echo '<input type="number" min="1" name="' . esc_attr( self::OPTION_KEY ) . '[default_amount]" value="' . esc_attr( (string) $s['default_amount'] ) . '" />';
             },
             'wpbn-settings',
@@ -95,7 +95,7 @@ class Settings {
             'default_currency',
             __( 'Default Currency', 'wpbn' ),
             function () {
-                $s = self::getSettings();
+                $s = self::get_settings();
                 echo '<select name="' . esc_attr( self::OPTION_KEY ) . '[default_currency]">';
                 foreach ( [ 'SATS', 'USD', 'EUR', 'CHF', 'JPY' ] as $cur ) {
                     echo '<option value="' . esc_attr( $cur ) . '" ' . selected( $cur, $s['default_currency'], false ) . '>' . esc_html( $cur ) . '</option>';
@@ -111,7 +111,7 @@ class Settings {
             'coinsnap_api_key',
             __( 'Coinsnap API Key', 'wpbn' ),
             function () {
-                $s = self::getSettings();
+                $s = self::get_settings();
                 echo '<input type="text" class="regular-text" name="' . esc_attr( self::OPTION_KEY ) . '[coinsnap_api_key]" value="' . esc_attr( $s['coinsnap_api_key'] ) . '" />';
             },
             'wpbn-settings',
@@ -121,7 +121,7 @@ class Settings {
             'coinsnap_store_id',
             __( 'Coinsnap Store ID', 'wpbn' ),
             function () {
-                $s = self::getSettings();
+                $s = self::get_settings();
                 echo '<input type="text" class="regular-text" name="' . esc_attr( self::OPTION_KEY ) . '[coinsnap_store_id]" value="' . esc_attr( $s['coinsnap_store_id'] ) . '" />';
             },
             'wpbn-settings',
@@ -131,7 +131,7 @@ class Settings {
             'coinsnap_api_base',
             __( 'Coinsnap API Base', 'wpbn' ),
             function () {
-                $s = self::getSettings();
+                $s = self::get_settings();
                 echo '<input type="url" class="regular-text" placeholder="https://app.coinsnap.org" name="' . esc_attr( self::OPTION_KEY ) . '[coinsnap_api_base]" value="' . esc_attr( $s['coinsnap_api_base'] ) . '" />';
             },
             'wpbn-settings',
@@ -141,7 +141,7 @@ class Settings {
             'coinsnap_webhook_secret',
             __( 'Coinsnap Webhook Secret', 'wpbn' ),
             function () {
-                $s = self::getSettings();
+                $s = self::get_settings();
                 echo '<input type="text" class="regular-text" name="' . esc_attr( self::OPTION_KEY ) . '[coinsnap_webhook_secret]" value="' . esc_attr( $s['coinsnap_webhook_secret'] ) . '" />';
             },
             'wpbn-settings',
@@ -153,7 +153,7 @@ class Settings {
             'btcpay_host',
             __( 'BTCPay Host', 'wpbn' ),
             function () {
-                $s = self::getSettings();
+                $s = self::get_settings();
                 echo '<input type="url" class="regular-text" placeholder="https://your-btcpay.example" name="' . esc_attr( self::OPTION_KEY ) . '[btcpay_host]" value="' . esc_attr( $s['btcpay_host'] ) . '" />';
             },
             'wpbn-settings',
@@ -163,7 +163,7 @@ class Settings {
             'btcpay_api_key',
             __( 'BTCPay API Key', 'wpbn' ),
             function () {
-                $s = self::getSettings();
+                $s = self::get_settings();
                 echo '<input type="text" class="regular-text" name="' . esc_attr( self::OPTION_KEY ) . '[btcpay_api_key]" value="' . esc_attr( $s['btcpay_api_key'] ) . '" />';
             },
             'wpbn-settings',
@@ -173,7 +173,7 @@ class Settings {
             'btcpay_store_id',
             __( 'BTCPay Store ID', 'wpbn' ),
             function () {
-                $s = self::getSettings();
+                $s = self::get_settings();
                 echo '<input type="text" class="regular-text" name="' . esc_attr( self::OPTION_KEY ) . '[btcpay_store_id]" value="' . esc_attr( $s['btcpay_store_id'] ) . '" />';
             },
             'wpbn-settings',
@@ -183,7 +183,7 @@ class Settings {
             'btcpay_webhook_secret',
             __( 'BTCPay Webhook Secret', 'wpbn' ),
             function () {
-                $s = self::getSettings();
+                $s = self::get_settings();
                 echo '<input type="text" class="regular-text" name="' . esc_attr( self::OPTION_KEY ) . '[btcpay_webhook_secret]" value="' . esc_attr( $s['btcpay_webhook_secret'] ) . '" />';
             },
             'wpbn-settings',
@@ -195,7 +195,7 @@ class Settings {
             'newsletter_provider',
             __( 'Provider', 'wpbn' ),
             function () {
-                $s = self::getSettings();
+                $s = self::get_settings();
                 echo '<select name="' . esc_attr( self::OPTION_KEY ) . '[newsletter_provider]">';
                 foreach ( [
                     'wpdb'      => __( 'WP Database (internal only)', 'wpbn' ),
@@ -216,7 +216,7 @@ class Settings {
             'mailpoet_list_id',
             __( 'MailPoet List ID', 'wpbn' ),
             function () {
-                $s = self::getSettings();
+                $s = self::get_settings();
                 echo '<input type="text" class="regular-text" name="' . esc_attr( self::OPTION_KEY ) . '[mailpoet_list_id]" value="' . esc_attr( $s['mailpoet_list_id'] ) . '" />';
             },
             'wpbn-settings',
@@ -313,7 +313,7 @@ class Settings {
         return $out;
     }
 
-    public static function renderPage(): void {
+    public static function render_page(): void {
         echo '<div class="wrap wpbn-admin">';
         echo '<h1>' . esc_html__( 'WP Bitcoin Newsletter Settings', 'wpbn' ) . '</h1>';
         echo '<form method="post" action="options.php">';

@@ -104,12 +104,12 @@ class SyncService {
         do_action( 'wpbn_after_provider_sync', $subscriberId, (bool) $synced );
 
         if ( $synced ) {
-            self::sendEmails( $formId, $subscriber['email'] );
+            self::send_emails( $formId, $subscriber['email'] );
         }
         return $synced;
     }
 
-    private static function sendEmails( int $formId, string $email ): void {
+    private static function send_emails( int $formId, string $email ): void {
         $emailMeta = get_post_meta( $formId, '_wpbn_email', true );
         $template  = is_array( $emailMeta ) && ! empty( $emailMeta['email_template'] ) ? $emailMeta['email_template'] : __( 'Thank you for subscribing!', 'wpbn' );
         $subject   = __( 'Welcome to our newsletter', 'wpbn' );

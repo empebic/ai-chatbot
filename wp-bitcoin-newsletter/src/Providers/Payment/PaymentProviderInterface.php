@@ -12,7 +12,7 @@ interface PaymentProviderInterface {
      * @param array  $subscriberData Subscriber data.
      * @return array { invoice_id: string, payment_url: string, expires_at?: int }
      */
-    public function createInvoice( int $formId, int $amount, string $currency, array $subscriberData ): array;
+    public function create_invoice( int $formId, int $amount, string $currency, array $subscriberData ): array;
 
     /**
      * Validate webhook or callback.
@@ -20,6 +20,6 @@ interface PaymentProviderInterface {
      * @param array $request Parsed request body.
      * @return array { invoice_id: string, paid: bool, metadata: array }
      */
-    public function handleWebhook( array $request ): array;
+    public function handle_webhook( array $request ): array;
 }
 

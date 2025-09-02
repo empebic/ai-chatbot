@@ -40,20 +40,20 @@ class FormPostType {
             ]
         );
 
-        add_action( 'add_meta_boxes', [ __CLASS__, 'registerMetaboxes' ] );
-        add_action( 'save_post_' . self::POST_TYPE, [ __CLASS__, 'saveMeta' ], 10, 2 );
+        add_action( 'add_meta_boxes', [ __CLASS__, 'register_metaboxes' ] );
+        add_action( 'save_post_' . self::POST_TYPE, [ __CLASS__, 'save_meta' ], 10, 2 );
     }
 
-    public static function registerMetaboxes(): void {
-        add_meta_box( 'wpbn_fields', __( 'Form Fields', 'wpbn' ), [ __CLASS__, 'renderFieldsMetabox' ], self::POST_TYPE, 'normal' );
-        add_meta_box( 'wpbn_payment', __( 'Payment Settings', 'wpbn' ), [ __CLASS__, 'renderPaymentMetabox' ], self::POST_TYPE, 'side' );
-        add_meta_box( 'wpbn_email', __( 'Email & Redirect', 'wpbn' ), [ __CLASS__, 'renderEmailMetabox' ], self::POST_TYPE, 'normal' );
-        add_meta_box( 'wpbn_gdpr', __( 'GDPR & Compliance', 'wpbn' ), [ __CLASS__, 'renderGdprMetabox' ], self::POST_TYPE, 'normal' );
-        add_meta_box( 'wpbn_provider', __( 'Newsletter Provider (Override)', 'wpbn' ), [ __CLASS__, 'renderProviderMetabox' ], self::POST_TYPE, 'side' );
-        add_meta_box( 'wpbn_shortcode', __( 'Shortcode', 'wpbn' ), [ __CLASS__, 'renderShortcodeMetabox' ], self::POST_TYPE, 'side' );
+    public static function register_metaboxes(): void {
+        add_meta_box( 'wpbn_fields', __( 'Form Fields', 'wpbn' ), [ __CLASS__, 'render_fields_metabox' ], self::POST_TYPE, 'normal' );
+        add_meta_box( 'wpbn_payment', __( 'Payment Settings', 'wpbn' ), [ __CLASS__, 'render_payment_metabox' ], self::POST_TYPE, 'side' );
+        add_meta_box( 'wpbn_email', __( 'Email & Redirect', 'wpbn' ), [ __CLASS__, 'render_email_metabox' ], self::POST_TYPE, 'normal' );
+        add_meta_box( 'wpbn_gdpr', __( 'GDPR & Compliance', 'wpbn' ), [ __CLASS__, 'render_gdpr_metabox' ], self::POST_TYPE, 'normal' );
+        add_meta_box( 'wpbn_provider', __( 'Newsletter Provider (Override)', 'wpbn' ), [ __CLASS__, 'render_provider_metabox' ], self::POST_TYPE, 'side' );
+        add_meta_box( 'wpbn_shortcode', __( 'Shortcode', 'wpbn' ), [ __CLASS__, 'render_shortcode_metabox' ], self::POST_TYPE, 'side' );
     }
 
-    public static function renderFieldsMetabox( \WP_Post $post ): void {
+    public static function render_fields_metabox( \WP_Post $post ): void {
         wp_nonce_field( 'wpbn_save_form_' . $post->ID, 'wpbn_form_nonce' );
 
         $defaults = [
@@ -96,15 +96,15 @@ class FormPostType {
         echo '<p><label>' . esc_html__( 'Email Label', 'wpbn' ) . '</label><br />';
         echo '<input type="text" class="widefat" name="wpbn_fields[email_label]" value="' . esc_attr( $values['email_label'] ) . '" /></p>';
 
-        self::renderToggleRow( 'first_name', $values );
-        self::renderToggleRow( 'last_name', $values );
-        self::renderToggleRow( 'phone', $values );
-        self::renderToggleRow( 'company', $values );
-        self::renderCustomRow( 'custom1', $values );
-        self::renderCustomRow( 'custom2', $values );
+        self::render_toggle_row( 'first_name', $values );
+        self::render_toggle_row( 'last_name', $values );
+        self::render_toggle_row( 'phone', $values );
+        self::render_toggle_row( 'company', $values );
+        self::render_custom_row( 'custom1', $values );
+        self::render_custom_row( 'custom2', $values );
     }
 
-    private static function renderToggleRow( string $slug, array $values ): void {
+    private static function render_toggle_row( string $slug, array $values ): void {
         echo '<fieldset style="border:1px solid #ddd;padding:10px;margin:10px 0;">';
         echo '<legend><strong>' . esc_html( ucwords( str_replace( '_', ' ', $slug ) ) ) . '</strong></legend>';
         echo '<label><input type="checkbox" name="wpbn_fields[' . esc_attr( $slug ) . '_enabled]" value="1" ' . checked( '1', $values[ $slug . '_enabled' ], false ) . ' /> ' . esc_html__( 'Enabled', 'wpbn' ) . '</label><br />';
@@ -114,7 +114,7 @@ class FormPostType {
         echo '</fieldset>';
     }
 
-    private static function renderCustomRow( string $slug, array $values ): void {
+    private static function render_custom_row( string $slug, array $values ): void {
         echo '<fieldset style="border:1px solid #ddd;padding:10px;margin:10px 0;">';
         echo '<legend><strong>' . esc_html( ucwords( str_replace( '_', ' ', $slug ) ) ) . '</strong></legend>';
         echo '<label><input type="checkbox" name="wpbn_fields[' . esc_attr( $slug ) . '_enabled]" value="1" ' . checked( '1', $values[ $slug . '_enabled' ], false ) . ' /> ' . esc_html__( 'Enabled', 'wpbn' ) . '</label><br />';
@@ -130,7 +130,7 @@ class FormPostType {
         echo '</fieldset>';
     }
 
-    public static function renderPaymentMetabox( \WP_Post $post ): void {
+    public static function render_payment_metabox( \WP_Post $post ): void {
         $defaults = [
             'amount'            => '21',
             'currency'          => 'SATS',
@@ -156,7 +156,7 @@ class FormPostType {
         echo '</select></label></p>';
     }
 
-    public static function renderEmailMetabox( \WP_Post $post ): void {
+    public static function render_email_metabox( \WP_Post $post ): void {
         $defaults = [
             'welcome_url'      => '',
             'email_template'   => '',
@@ -176,7 +176,7 @@ class FormPostType {
         echo '<textarea class="widefat" rows="6" name="wpbn_email[email_template]">' . esc_textarea( $values['email_template'] ) . '</textarea></label></p>';
     }
 
-    public static function renderGdprMetabox( \WP_Post $post ): void {
+    public static function render_gdpr_metabox( \WP_Post $post ): void {
         $defaults = [
             'gdpr_text'          => __( 'I consent to receive newsletters and accept the privacy policy.', 'wpbn' ),
             'retention_days'     => '0',
@@ -194,7 +194,7 @@ class FormPostType {
         echo '<p><label>' . esc_html__( 'Data Retention (days, 0 = keep indefinitely)', 'wpbn' ) . ': <input type="number" min="0" name="wpbn_gdpr[retention_days]" value="' . esc_attr( $values['retention_days'] ) . '" /></label></p>';
     }
 
-    public static function renderProviderMetabox( \WP_Post $post ): void {
+    public static function render_provider_metabox( \WP_Post $post ): void {
         $defaults = [
             'provider_override'     => '',
             'mailpoet_list_id'      => '',
@@ -227,12 +227,12 @@ class FormPostType {
         echo '<p><label>' . esc_html__( 'ConvertKit Form ID (override)', 'wpbn' ) . '<br /><input type="text" class="widefat" name="wpbn_provider[convertkit_form_id]" value="' . esc_attr( $values['convertkit_form_id'] ) . '" /></label></p>';
     }
 
-    public static function renderShortcodeMetabox( \WP_Post $post ): void {
+    public static function render_shortcode_metabox( \WP_Post $post ): void {
         $shortcode = '[coinsnap_newsletter_form id="' . (int) $post->ID . '"]';
         echo '<input type="text" class="widefat" readonly value="' . esc_attr( $shortcode ) . '" onclick="this.select();" />';
     }
 
-    public static function saveMeta( int $postId, \WP_Post $post ): void {
+    public static function save_meta( int $postId, \WP_Post $post ): void {
         if ( ! isset( $_POST['wpbn_form_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['wpbn_form_nonce'] ) ), 'wpbn_save_form_' . $postId ) ) {
             return;
         }

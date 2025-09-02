@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class CoinsnapProvider implements PaymentProviderInterface {
-    public function createInvoice( int $formId, int $amount, string $currency, array $subscriberData ): array {
+    public function create_invoice( int $formId, int $amount, string $currency, array $subscriberData ): array {
         $settings = Settings::getSettings();
         $apiKey   = $settings['coinsnap_api_key'];
         $storeId  = $settings['coinsnap_store_id'];
@@ -67,7 +67,7 @@ class CoinsnapProvider implements PaymentProviderInterface {
         return [];
     }
 
-    public function handleWebhook( array $request ): array {
+    public function handle_webhook( array $request ): array {
         do_action( 'wpbn_coinsnap_webhook_received', $request );
         $invoiceId = isset( $request['invoiceId'] ) ? (string) $request['invoiceId'] : '';
         $type      = isset( $request['type'] ) ? (string) $request['type'] : '';
@@ -79,7 +79,7 @@ class CoinsnapProvider implements PaymentProviderInterface {
         ];
     }
 
-    public static function verifySignature(): bool {
+    public static function verify_signature(): bool {
         $settings = Settings::getSettings();
         $secret   = (string) $settings['coinsnap_webhook_secret'];
         if ( ! $secret ) {

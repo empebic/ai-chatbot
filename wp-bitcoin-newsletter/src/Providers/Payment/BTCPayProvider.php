@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class BTCPayProvider implements PaymentProviderInterface {
-    public function createInvoice( int $formId, int $amount, string $currency, array $subscriberData ): array {
+    public function create_invoice( int $formId, int $amount, string $currency, array $subscriberData ): array {
         $s      = Settings::getSettings();
         $host   = rtrim( (string) $s['btcpay_host'], '/' );
         $apiKey = (string) $s['btcpay_api_key'];
@@ -54,7 +54,7 @@ class BTCPayProvider implements PaymentProviderInterface {
         return [];
     }
 
-    public function handleWebhook( array $request ): array {
+    public function handle_webhook( array $request ): array {
         do_action( 'wpbn_btcpay_webhook_received', $request );
         $invoiceId = isset( $request['invoiceId'] ) ? (string) $request['invoiceId'] : '';
         $type      = isset( $request['type'] ) ? (string) $request['type'] : '';
@@ -66,7 +66,7 @@ class BTCPayProvider implements PaymentProviderInterface {
         ];
     }
 
-    public static function verifySignature(): bool {
+    public static function verify_signature(): bool {
         $s       = Settings::getSettings();
         $secret  = (string) $s['btcpay_webhook_secret'];
         if ( ! $secret ) {

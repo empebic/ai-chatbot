@@ -19,7 +19,7 @@ class Routes {
             [
                 'methods'             => 'POST',
                 'permission_callback' => '__return_true',
-                'callback'            => [ __CLASS__, 'coinsnapWebhook' ],
+                'callback'            => [ __CLASS__, 'coinsnap_webhook' ],
             ]
         );
 
@@ -29,7 +29,7 @@ class Routes {
             [
                 'methods'             => 'POST',
                 'permission_callback' => '__return_true',
-                'callback'            => [ __CLASS__, 'btcpayWebhook' ],
+                'callback'            => [ __CLASS__, 'btcpay_webhook' ],
             ]
         );
 
@@ -59,17 +59,17 @@ class Routes {
             [
                 'methods'             => 'POST',
                 'permission_callback' => function () { return current_user_can( 'manage_options' ); },
-                'callback'            => [ __CLASS__, 'bulkResync' ],
+                'callback'            => [ __CLASS__, 'bulk_resync' ],
             ]
         );
     }
 
-    public static function coinsnapWebhook( $request ) {
-        if ( ! CoinsnapProvider::verifySignature() ) {
+    public static function coinsnap_webhook( $request ) {
+        if ( ! CoinsnapProvider::verify_signature() ) {
             return new \WP_Error( 'invalid_signature', 'Invalid signature', [ 'status' => 401 ] );
         }
         $params = json_decode( $request->get_body(), true ) ?: [];
-        $parsed = ( new CoinsnapProvider() )->handleWebhook( $params );
+        $parsed = ( new CoinsnapProvider() )->handle_webhook( $params );
         if ( ! empty( $parsed['invoice_id'] ) && ! empty( $parsed['paid'] ) ) {
             $res = SyncService::handlePaymentPaid( (string) $parsed['invoice_id'], $params );
             return rest_ensure_response( [ 'ok' => $res['ok'] ] );
@@ -77,12 +77,12 @@ class Routes {
         return new \WP_Error( 'invalid', 'Invalid webhook', [ 'status' => 400 ] );
     }
 
-    public static function btcpayWebhook( $request ) {
-        if ( ! BTCPayProvider::verifySignature() ) {
+    public static function btcpay_webhook( $request ) {
+        if ( ! BTCPayProvider::verify_signature() ) {
             return new \WP_Error( 'invalid_signature', 'Invalid signature', [ 'status' => 401 ] );
         }
         $params = json_decode( $request->get_body(), true ) ?: [];
-        $parsed = ( new BTCPayProvider() )->handleWebhook( $params );
+        $parsed = ( new BTCPayProvider() )->handle_webhook( $params );
         if ( ! empty( $parsed['invoice_id'] ) && ! empty( $parsed['paid'] ) ) {
             $res = SyncService::handlePaymentPaid( (string) $parsed['invoice_id'], $params );
             return rest_ensure_response( [ 'ok' => $res['ok'] ] );
@@ -115,7 +115,7 @@ class Routes {
         return rest_ensure_response( [ 'ok' => (bool) $ok ] );
     }
 
-    public static function bulkResync( $request ) {
+    public static function bulk_resync( $request ) {
         $ids = (array) $request->get_param( 'ids' );
         $ids = array_map( 'absint', $ids );
         $ok  = true;

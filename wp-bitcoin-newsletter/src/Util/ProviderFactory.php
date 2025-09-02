@@ -14,7 +14,7 @@ use WpBitcoinNewsletter\Providers\Newsletter\SendinblueProvider;
 use WpBitcoinNewsletter\Providers\Newsletter\ConvertKitProvider;
 
 class ProviderFactory {
-    public static function paymentForForm( int $formId ): PaymentProviderInterface {
+    public static function payment_for_form( int $formId ): PaymentProviderInterface {
         $settings = Settings::getSettings();
         $payment  = get_post_meta( $formId, '_wpbn_payment', true );
         $override = is_array( $payment ) && ! empty( $payment['provider_override'] ) ? $payment['provider_override'] : '';

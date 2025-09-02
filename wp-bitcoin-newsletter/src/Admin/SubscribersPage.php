@@ -9,9 +9,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class SubscribersPage {
-    public static function renderPage(): void {
+    public static function render_page(): void {
         if ( isset( $_GET['wpbn_export'] ) && current_user_can( 'manage_options' ) ) {
-            self::exportCsv();
+            self::export_csv();
             return;
         }
 
@@ -101,7 +101,7 @@ class SubscribersPage {
         echo '</div>';
     }
 
-    private static function exportCsv(): void {
+    private static function export_csv(): void {
         if ( ! current_user_can( 'manage_options' ) ) {
             wp_die( __( 'Unauthorized', 'wpbn' ) );
         }
